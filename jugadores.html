@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estadísticas de las pachangas</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root { --pitch:#1f4d3a; --chalk:#f5f3ec; --ink:#1d2a24; --accent:#e8742c; --line:#d9d6cb; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--chalk); color:var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+header { background:var(--pitch); color:var(--chalk); padding:28px 20px 22px; }
+header h1 { margin:0 0 6px; font-size:1.7rem; font-weight:700; }
+header p { margin:0; font-family: system-ui, sans-serif; font-size:.95rem; opacity:.85; }
+main { max-width:760px; margin:0 auto; padding:20px; font-family: system-ui, sans-serif; }
+select { width:100%; padding:14px; font-size:1.05rem; border:2px solid var(--pitch); border-radius:8px; background:#fff; color:var(--ink); }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:18px 0; }
+.stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px; }
+.stat b { display:block; font-family:Georgia, serif; font-size:1.8rem; color:var(--pitch); }
+.stat span { font-size:.85rem; color:#5b665f; }
+.stat.hot b { color:var(--accent); }
+h2 { font-family:Georgia, serif; font-size:1.25rem; margin:26px 0 8px; }
+table { width:100%; border-collapse:collapse; background:#fff; font-size:.92rem; }
+th, td { padding:8px; border-bottom:1px solid var(--line); text-align:center; }
+th { background:var(--pitch); color:var(--chalk); font-weight:600; }
+td:first-child, th:first-child { text-align:left; }
+.wrap { overflow-x:auto; border-radius:8px; border:1px solid var(--line); }
+tr.link td:first-child { color:var(--pitch); font-weight:600; cursor:pointer; text-decoration:underline; }
+#msg { margin:30px 0; text-align:center; color:#5b665f; }
+:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Estadísticas de las pachangas</h1>
+  <p>Elige tu nombre y mira cómo vas.</p>
+</header>
+<main>
+  <select id="sel" aria-label="Jugador"><option value="">Cargando jugadores…</option></select>
+  <div id="msg"></div>
+  <div id="ficha"></div>
+  <div id="ranking"></div>
+</main>
+
+<script>
+// 1) Pega aquí la configuración de tu proyecto de Firebase (Paso 3 de la guía)
+const firebaseConfig = {
+  apiKey: "AIzaSyDy-MY0oFN3C1m8nK4ugtf1BxuasgkjQKk",
+  authDomain: "pachangapp-81f60.firebaseapp.com",
+  projectId: "pachangapp-81f60",
+  storageBucket: "pachangapp-81f60.firebasestorage.app",
+  messagingSenderId: "320298566253",
+  appId: "1:320298566253:web:d0dc7fd586a63133c37564"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const norm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let players = {};
+
+async function load() {
+  const msg = document.getElementById('msg');
+  try {
+    const snap = await db.collection('partidos').get();
+    snap.forEach(doc => {
+      const m = doc.data();
+      const seen = {};
+      ['white', 'black'].forEach(team => {
+        ((m.matchData && m.matchData[team] && m.matchData[team].players) || []).forEach(p => {
+          const key = norm(p.name);
+          if (!key) return;
+          const s = players[key] = players[key] || { name: p.name.trim(), matches: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, palos: 0, og: 0, list: [] };
+          const g = p.goalsList ? p.goalsList.length : 0;
+          s.goals += g; s.ast += p.ast || 0; s.def += p.def || 0; s.pta += p.p || 0;
+          s.fue += p.f || 0; s.fl += p.fl || 0; s.og += p.og || 0;
+          s.palos += p.palos ? Object.values(p.palos).reduce((a, b) => a + b, 0) : 0;
+          if (!seen[key]) {
+            seen[key] = true; s.matches++;
+            s.list.push({ date: m.date, score: `${(m.score || {}).white || 0} - ${(m.score || {}).black || 0}`, g, ast: p.ast || 0, def: p.def || 0, fl: p.fl || 0 });
+          }
+        });
+      });
+    });
+    const keys = Object.keys(players).sort((a, b) => players[a].name.localeCompare(players[b].name, 'es'));
+    const sel = document.getElementById('sel');
+    if (!keys.length) { sel.innerHTML = '<option value="">Aún no hay partidos</option>'; msg.textContent = 'Todavía no hay partidos registrados.'; return; }
+    sel.innerHTML = '<option value="">Elige tu nombre</option>' + keys.map(k => `<option value="${k}">${esc(players[k].name)}</option>`).join('');
+    sel.onchange = () => show(sel.value);
+    renderRanking(keys);
+    const wanted = norm(new URLSearchParams(location.search).get('j'));
+    if (wanted && players[wanted]) { sel.value = wanted; show(wanted); }
+  } catch (e) {
+    msg.textContent = 'No se pudieron cargar los datos. Comprueba la conexión e inténtalo de nuevo.';
+  }
+}
+
+function show(key) {
+  const box = document.getElementById('ficha');
+  if (!key) { box.innerHTML = ''; return; }
+  const s = players[key];
+  const shots = s.goals + s.pta + s.fue;
+  const prec = shots ? Math.round((s.goals + s.pta) / shots * 100) : 0;
+  const avg = n => s.matches ? (n / s.matches).toFixed(2) : '0.00';
+  const rows = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8).map(m =>
+    `<tr><td>${new Date(m.date).toLocaleDateString('es-ES')}</td><td>${m.score}</td><td>${m.g}</td><td>${m.ast}</td><td>${m.def}</td><td>${m.fl}</td></tr>`).join('');
+  box.innerHTML = `
+    <h2>${esc(s.name)}</h2>
+    <div class="grid">
+      <div class="stat"><b>${s.matches}</b><span>Partidos jugados</span></div>
+      <div class="stat hot"><b>${s.goals}</b><span>Goles (${avg(s.goals)} por partido)</span></div>
+      <div class="stat"><b>${s.ast}</b><span>Asistencias</span></div>
+      <div class="stat"><b>${s.def}</b><span>Recuperaciones (${avg(s.def)} por partido)</span></div>
+      <div class="stat"><b>${prec}%</b><span>Precisión de tiro (${s.goals + s.pta} de ${shots})</span></div>
+      <div class="stat"><b>${s.fl}</b><span>Faltas · ${s.palos} palos · ${s.og} en propia</span></div>
+    </div>
+    <h2>Últimos partidos</h2>
+    <div class="wrap"><table><tr><th>Fecha</th><th>Blanco - Negro</th><th>Goles</th><th>Ast</th><th>REC</th><th>Faltas</th></tr>${rows}</table></div>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderRanking(keys) {
+  const sorted = keys.slice().sort((a, b) => players[b].goals - players[a].goals || players[b].ast - players[a].ast);
+  const rows = sorted.map(k => { const p = players[k];
+    return `<tr class="link" onclick="document.getElementById('sel').value='${k}'; show('${k}')"><td>${esc(p.name)}</td><td>${p.matches}</td><td>${p.goals}</td><td>${p.ast}</td><td>${p.def}</td></tr>`; }).join('');
+  document.getElementById('ranking').innerHTML = `<h2>Ranking general</h2><div class="wrap"><table><tr><th>Jugador</th><th>PJ</th><th>Goles</th><th>Ast</th><th>REC</th></tr>${rows}</table></div>`;
+}
+
+load();
+</script>
+</body>
+</html>
