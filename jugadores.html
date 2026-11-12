@@ -286,8 +286,10 @@ async function enviar(o) {
 }
 function pedir(tipo) {
   const s = ALL[sel]; if (!s) return;
-  const v = (prompt(tipo === 'nombre' ? 'Nuevo nombre (lo revisará el administrador):' : 'Mote que quieres (lo revisará el administrador):') || '').trim();
-  if (!v) return;
+  const r = prompt(tipo === 'nombre' ? 'Nuevo nombre (lo revisará el administrador):' : 'Mote que quieres (lo revisará el administrador). Déjalo en blanco para quitarlo:');
+  if (r === null) return;
+  const v = r.trim();
+  if (!v && (tipo === 'nombre' || !s.mote)) return;
   if (v.length > 40) { $('msg').textContent = 'Máximo 40 caracteres.'; return; }
   enviar({ tipo, jugador: sel, actual: s.name, nuevo: v });
 }
