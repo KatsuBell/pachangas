@@ -7,44 +7,82 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-:root { --pitch:#1f4d3a; --chalk:#f5f3ec; --ink:#1d2a24; --accent:#e8742c; --line:#d9d6cb; }
-* { box-sizing: border-box; }
-body { margin:0; background:var(--chalk); color:var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-header { background:var(--pitch); color:var(--chalk); padding:28px 20px 22px; }
-header h1 { margin:0 0 6px; font-size:1.7rem; font-weight:700; }
-header p { margin:0; font-family: system-ui, sans-serif; font-size:.95rem; opacity:.85; }
-main { max-width:760px; margin:0 auto; padding:20px; font-family: system-ui, sans-serif; }
-select { width:100%; padding:14px; font-size:1.05rem; border:2px solid var(--pitch); border-radius:8px; background:#fff; color:var(--ink); }
-.grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:18px 0; }
-.stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px; }
-.stat b { display:block; font-family:Georgia, serif; font-size:1.8rem; color:var(--pitch); }
-.stat span { font-size:.85rem; color:#5b665f; }
-.stat.hot b { color:var(--accent); }
-h2 { font-family:Georgia, serif; font-size:1.25rem; margin:26px 0 8px; }
-table { width:100%; border-collapse:collapse; background:#fff; font-size:.92rem; }
-th, td { padding:8px; border-bottom:1px solid var(--line); text-align:center; }
-th { background:var(--pitch); color:var(--chalk); font-weight:600; }
-td:first-child, th:first-child { text-align:left; }
-.wrap { overflow-x:auto; border-radius:8px; border:1px solid var(--line); }
-tr.link td:first-child { color:var(--pitch); font-weight:600; cursor:pointer; text-decoration:underline; }
-#msg { margin:30px 0; text-align:center; color:#5b665f; }
-:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+:root{--g:#2fd16a;--e:#9aa5a0;--r:#e5484d;--ink:#1c2a24;--mut:#6b7a72;--card:rgba(255,255,255,.86)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+background:radial-gradient(circle at 20% 0,#3f8f5f 0,transparent 45%),radial-gradient(circle at 90% 100%,#2b6b47 0,transparent 50%),#d9e6dd}
+main{max-width:780px;margin:0 auto;padding:18px 14px 40px}
+h1{margin:0 0 12px;font-size:2rem;font-weight:900;text-transform:uppercase;letter-spacing:-.5px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.25)}
+h2{margin:0 0 14px;font-size:1.05rem;font-weight:900;text-transform:uppercase}
+.card{background:var(--card);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.7);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+select{width:100%;padding:13px;font-size:1rem;border:0;border-radius:12px;background:var(--card);color:var(--ink);font-weight:600}
+.tabs{display:flex;gap:6px;margin:12px 0;background:var(--card);padding:5px;border-radius:14px}
+.tabs button{flex:1;padding:10px 4px;border:0;border-radius:10px;background:none;font:inherit;font-weight:700;color:var(--mut);cursor:pointer}
+.tabs button.on{background:#2c3a33;color:#fff}
+.head{display:flex;align-items:center;gap:14px}
+.av{flex:none;width:78px;height:78px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:1.7rem;background-size:cover;background-position:center;border:3px solid #fff;box-shadow:0 0 0 3px var(--ring,#2fd16a)}
+.av.s{width:38px;height:38px;font-size:.85rem;border-width:2px;box-shadow:none}
+.head h3{margin:0;font-size:1.9rem;line-height:1.05;font-weight:900;text-transform:uppercase;word-break:break-word}
+.head small{color:var(--mut);font-weight:600}
+.foto{display:inline-block;margin-top:6px;font-size:.8rem;font-weight:700;color:#2c3a33;background:#fff;padding:5px 10px;border-radius:99px;cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ringbox{display:flex;align-items:center;gap:14px}
+.ringbox svg{flex:none}
+.vde{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1}
+.t{background:#fff;border:1px solid #e3e9e5;border-radius:12px;padding:10px 6px;text-align:center}
+.t b{display:block;font-size:1.9rem;font-weight:900;line-height:1.1}
+.t span{font-size:.7rem;font-weight:700;color:var(--mut);text-transform:uppercase}
+.v b{color:var(--g)}.e b{color:var(--e)}.d b{color:var(--r)}
+.fp{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fp b{font-size:2.2rem;font-weight:900}
+.bar{height:10px;background:#dfe7e2;border-radius:9px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--g)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
+.chips button{flex:none;padding:7px 12px;border:0;border-radius:99px;background:#fff;font:inherit;font-size:.85rem;font-weight:700;color:var(--mut);cursor:pointer}
+.chips button.on{background:var(--g);color:#06260f}
+.li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e3e9e5;cursor:pointer}
+.li:last-child{border:0}
+.pos{width:22px;text-align:center;font-weight:900;color:var(--mut)}
+.li .n{flex:1;font-weight:700}.li .n small{display:block;font-weight:500;color:var(--mut);font-size:.75rem}
+.li .val{font-size:1.4rem;font-weight:900}
+.pill{flex:none;min-width:62px;text-align:center;padding:7px 8px;border-radius:10px;font-weight:900;color:#fff}
+.pill.v{background:var(--g);color:#06260f}.pill.e{background:var(--e)}.pill.d{background:var(--r)}
+#msg{text-align:center;color:#fff;font-weight:600;margin:14px 0}
+.rad{display:block;margin:0 auto;max-width:300px;width:100%}
+:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.srch{position:relative}.srch input{width:100%;padding:13px;font-size:1rem;border:0;border-radius:12px;background:var(--card);color:var(--ink);font-weight:600}
+#sug{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:5;max-height:300px;overflow:auto}
+.sg{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-weight:600}.sg:hover{background:#eef3ef}
+.honor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hn{background:#fff;border-radius:12px;padding:10px}
+.hn small{display:block;color:var(--mut);font-weight:700;font-size:.7rem;text-transform:uppercase}.hn b{font-size:1.05rem}.hn .s{font-size:.75rem;color:var(--mut);margin-top:4px}
+.med{display:flex;flex-wrap:wrap;gap:6px}.med span{background:#fff;border:1px solid #e3e9e5;border-radius:99px;padding:6px 10px;font-weight:700;font-size:.82rem}
+.luck b{font-size:1.3rem}.luck span{display:block;text-transform:none;font-weight:600}
+details.gl summary{font-weight:900;text-transform:uppercase;cursor:pointer}details.gl p{margin:8px 0 0;font-size:.88rem;color:#3b4a42}
+details.m>summary{list-style:none}details.m>summary::-webkit-details-marker{display:none}
 </style>
 </head>
 <body>
-<header>
-  <h1>Estadísticas de las pachangas</h1>
-  <p>Elige tu nombre y mira cómo vas.</p>
-</header>
 <main>
-  <select id="sel" aria-label="Jugador"><option value="">Cargando jugadores…</option></select>
+  <h1>Estadísticas</h1>
+  <div class="srch"><input id="q" type="search" placeholder="Escribe tu nombre…" autocomplete="off" aria-label="Buscar jugador"><div id="sug"></div></div>
+  <div class="tabs" id="tabs">
+    <button data-t="ficha">Ficha</button><button data-t="partidos">Partidos</button><button data-t="ranking">Ránking</button>
+  </div>
   <div id="msg"></div>
-  <div id="ficha"></div>
-  <div id="ranking"></div>
+  <div id="view"></div>
+  <details class="card gl"><summary>Glosario: cómo se calcula todo</summary>
+    <p><b>PJ:</b> partidos jugados. <b>REC:</b> recuperaciones, es decir, balones robados o cortes defensivos que se apuntan durante el partido.</p>
+    <p><b>Goles y asistencias:</b> los goles en propia puerta no cuentan como gol del jugador. <b>Precisión de tiro:</b> (goles + tiros a puerta) entre todos los tiros, incluidos los que van fuera.</p>
+    <p><b>MVP:</b> en cada partido gana quien más puntos suma: 3 por gol, 2 por asistencia, 0,5 por tiro a puerta y 0,5 por recuperación, menos 1 por falta. Si hay empate, gana quien más goles tenga.</p>
+    <p><b>Radar:</b> Ofensiva (goles por partido, el 100 % son 2,5), Visión (asistencias por partido, el 100 % son 2), Defensa (REC por partido, el 100 % son 4), Puntería (precisión de tiro) y Constancia (porcentaje de partidos jugados de todos los registrados).</p>
+    <p><b>Mejor socio:</b> quien más goles tuyos ha asistido. <b>Color de la suerte:</b> el equipo, blanco o negro, con el que más victorias llevas; si hay empate, decide el porcentaje de victorias.</p>
+    <p><b>Faltas:</b> se apuntan en plan broma y solo cuentan para el premio de Más faltoso. <b>% victorias</b> en el ránking solo se calcula con 3 partidos o más.</p>
+    <p><b>Medallas mensuales:</b> se conceden cuando acaba el mes, y los empates las comparten. Bota de Oro (goles), Balón de Oro (MVPs), El Mago (asistencias), La Muralla (REC), El Francotirador (mejor efectividad en un partido, con 5 tiros o más), Gatillo Fácil (más tiros en un partido), Fuego Amigo (goles en propia) y Más faltoso. <b>Fiel:</b> haber jugado todos los partidos de un mes con 3 o más. <b>De siempre:</b> Hat-trick (3 goles o más en un partido), Racha ganadora (3 victorias seguidas o más) y Dúo dinámico (3 goles o más asistidos por el mismo compañero).</p>
+    <p><b>Fotos:</b> se reducen y se guardan junto a los datos. Si ves una que no debería estar, avisa al administrador.</p>
+  </details>
+  <input type="file" id="file" accept="image/*" hidden>
 </main>
 
 <script>
-// 1) Pega aquí la configuración de tu proyecto de Firebase (Paso 3 de la guía)
 const firebaseConfig = {
   apiKey: "AIzaSyDy-MY0oFN3C1m8nK4ugtf1BxuasgkjQKk",
   authDomain: "pachangapp-81f60.firebaseapp.com",
@@ -53,81 +91,215 @@ const firebaseConfig = {
   messagingSenderId: "320298566253",
   appId: "1:320298566253:web:d0dc7fd586a63133c37564"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 const norm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let players = {};
+const docId = k => k.replace(/[^a-z0-9]+/g, '_');
+const $ = id => document.getElementById(id);
+const fmt = d => { d = new Date(d); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
+const monthKey = d => { d = new Date(d); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+const MET = { goles: ['Goles', p => p.goals], asist: ['Asist.', p => p.ast], rec: ['REC', p => p.def], mvp: ['MVPs', p => p.mvp], vic: ['Victorias', p => p.v], pct: ['% victorias', p => p.pj >= 3 ? Math.round(p.v / p.pj * 100) : null], pj: ['Partidos', p => p.pj], falt: ['Faltas 😈', p => p.fl] };
+
+let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'goles', mes = 'todo', dir = 1;
+
+// Agrega estadísticas de una lista de partidos
+function build(list) {
+  const P = {};
+  list.forEach(m => {
+    const sc = m.score || { white: 0, black: 0 }, rows = [];
+    ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => {
+      const k = norm(p.name); if (!k) return;
+      const g = p.goalsList ? p.goalsList.length : 0, a = p.ast || 0, pt = p.p || 0, d = p.def || 0, fl = p.fl || 0;
+      rows.push({ k, name: p.name.trim(), t, g, a, pt, f: p.f || 0, d, fl, pts: g * 3 + a * 2 + pt * .5 + d * .5 - fl });
+    }));
+    const top = rows.slice().sort((a, b) => b.pts - a.pts || b.g - a.g)[0];
+    const mvpKey = top && top.pts > 0 ? top.k : null, seen = {};
+    const lu = { white: rows.filter(r => r.t === 'white').map(r => ({ k: r.k, name: r.name })), black: rows.filter(r => r.t === 'black').map(r => ({ k: r.k, name: r.name })) };
+    rows.forEach(r => {
+      if (seen[r.k]) return; seen[r.k] = 1;
+      const s = P[r.k] = P[r.k] || { name: r.name, pj: 0, v: 0, e: 0, d: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, mvp: 0, fair: 0, partner: {}, list: [] };
+      const mine = sc[r.t], opp = sc[r.t === 'white' ? 'black' : 'white'];
+      const res = mine > opp ? 'v' : mine < opp ? 'd' : 'e', isMvp = r.k === mvpKey;
+      s.pj++; s[res]++; s.goals += r.g; s.ast += r.a; s.def += r.d; s.pta += r.pt; s.fue += r.f; s.fl += r.fl;
+      s.fair += Math.max(0, 3 - r.fl); if (isMvp) s.mvp++;
+      s.list.push({ date: m.date, sc, t: r.t, res, g: r.g, a: r.a, d: r.d, fl: r.fl, mvp: isMvp, lu });
+    });
+    (m.goalsTimeline || []).forEach(g => {
+      const k = norm(g.player);
+      if (P[k] && g.assist) P[k].partner[g.assist] = (P[k].partner[g.assist] || 0) + 1;
+    });
+  });
+  return P;
+}
+
+const color = k => `hsl(${[...k].reduce((a, c) => a + c.charCodeAt(0) * 7, 0) % 360} 42% 38%)`;
+function avatar(k, name, small) {
+  const ini = name.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const f = fotos[docId(k)];
+  return `<div class="av${small ? ' s' : ''}" style="${f ? `background-image:url(${f})` : `background:${color(k)}`}">${f ? '' : esc(ini)}</div>`;
+}
+
+function ring(v, e, d) {
+  const C = 2 * Math.PI * 54, tot = v + e + d; let acc = 0;
+  const seg = (n, c) => { if (!n) return ''; const l = n / tot * C, s = `<circle cx="70" cy="70" r="54" fill="none" stroke="${c}" stroke-width="14" stroke-dasharray="${l} ${C - l}" stroke-dashoffset="${-acc}" transform="rotate(-90 70 70)"/>`; acc += l; return s; };
+  return `<svg width="130" height="130" viewBox="0 0 140 140" role="img" aria-label="Partidos jugados: ${tot}"><circle cx="70" cy="70" r="54" fill="none" stroke="#dfe7e2" stroke-width="14"/>${seg(v, '#2fd16a')}${seg(e, '#9aa5a0')}${seg(d, '#e5484d')}<text x="70" y="68" text-anchor="middle" font-size="34" font-weight="900" fill="#1c2a24">${tot}</text><text x="70" y="88" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7a72">PARTIDOS</text></svg>`;
+}
+
+function radar(vals) {
+  const L = ['Ofensiva', 'Visión', 'Defensa', 'Puntería', 'Constancia'], cx = 150, cy = 120, R = 80;
+  const pt = (i, f) => { const a = (-90 + i * 72) * Math.PI / 180; return [cx + Math.cos(a) * R * f, cy + Math.sin(a) * R * f]; };
+  const poly = f => [0, 1, 2, 3, 4].map(i => pt(i, f).join(',')).join(' ');
+  const lv = [.25, .5, .75, 1].map(f => `<polygon points="${poly(f)}" fill="none" stroke="#cfd8d2"/>`).join('');
+  const ax = [0, 1, 2, 3, 4].map(i => { const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.2); return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#cfd8d2"/><text x="${lx}" y="${ly + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#1c2a24">${L[i]}</text>`; }).join('');
+  const data = vals.map((v, i) => pt(i, Math.max(.04, v / 100)).join(',')).join(' ');
+  return `<svg class="rad" viewBox="0 0 300 240" role="img" aria-label="Radar de rendimiento">${lv}${ax}<polygon points="${data}" fill="rgba(47,209,106,.35)" stroke="#1f9d4d" stroke-width="2.5"/></svg>`;
+}
+
+function rowsOf(m) {
+  const r = [];
+  ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => {
+    const k = norm(p.name); if (k) r.push({ k, g: p.goalsList ? p.goalsList.length : 0, pt: p.p || 0, f: p.f || 0, og: p.og || 0 });
+  }));
+  return r;
+}
+
+// Premios de un mes (los empates comparten)
+function premiosMes(list) {
+  const P = build(list), out = [];
+  const top = (n, e, M) => { let mx = 0, ks = []; for (const k in M) { if (M[k] > mx) { mx = M[k]; ks = [k]; } else if (M[k] === mx && mx > 0) ks.push(k); } if (ks.length) out.push({ n, e, keys: ks }); };
+  const of = f => Object.fromEntries(Object.keys(P).map(k => [k, f(P[k])]));
+  top('Bota de Oro', '⚽', of(p => p.goals)); top('Balón de Oro', '🥇', of(p => p.mvp)); top('El Mago', '🎩', of(p => p.ast));
+  top('La Muralla', '🛡️', of(p => p.def)); top('Más faltoso', '😈', of(p => p.fl));
+  const E = {}, T = {}, O = {};
+  list.forEach(m => rowsOf(m).forEach(r => { const sh = r.g + r.pt + r.f; E[r.k] = Math.max(E[r.k] || 0, sh >= 5 ? r.g / sh : 0); T[r.k] = Math.max(T[r.k] || 0, sh); O[r.k] = (O[r.k] || 0) + r.og; }));
+  top('El Francotirador', '🎯', E); top('Gatillo Fácil', '🔫', T); top('Fuego Amigo', '🤡', O);
+  return out;
+}
+
+function logros(k) {
+  const o = {}, add = (n, e) => { o[n] = o[n] ? { n, e, c: o[n].c + 1 } : { n, e, c: 1 }; };
+  const por = {}; matches.forEach(m => (por[monthKey(m.date)] = por[monthKey(m.date)] || []).push(m));
+  const s = ALL[k], hoy = monthKey(new Date());
+  Object.keys(por).filter(mk => mk < hoy).forEach(mk => {
+    premiosMes(por[mk]).forEach(p => { if (p.keys.includes(k)) add(p.n, p.e); });
+    if (por[mk].length >= 3 && s.list.filter(x => monthKey(x.date) === mk).length === por[mk].length) add('Fiel', '🤝');
+  });
+  const ht = s.list.filter(m => m.g >= 3).length; if (ht) o['Hat-trick'] = { n: 'Hat-trick', e: '⚡', c: ht };
+  let best = 0, cur = 0;
+  s.list.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(m => { cur = m.res === 'v' ? cur + 1 : 0; best = Math.max(best, cur); });
+  if (best >= 3) o['Racha'] = { n: `Racha de ${best} victorias`, e: '🔥', c: 1 };
+  const pr = Object.keys(s.partner).sort((a, b) => s.partner[b] - s.partner[a])[0];
+  if (pr && s.partner[pr] >= 3) o['Duo'] = { n: `Dúo dinámico con ${pr}`, e: '🎯', c: 1 };
+  return Object.values(o);
+}
+
+function ficha() {
+  const s = ALL[sel]; if (!s) return `<div class="card">Busca tu nombre arriba para ver tu ficha.</div>`;
+  const pm = s.pj || 1, shots = s.goals + s.pta + s.fue, prec = (s.goals + s.pta) / Math.max(1, shots) * 100;
+  const vals = [Math.min(100, s.goals / pm / 2.5 * 100), Math.min(100, s.ast / pm / 2 * 100), Math.min(100, s.def / pm / 4 * 100), prec, s.pj / Math.max(1, matches.length) * 100];
+  const partner = Object.keys(s.partner).sort((a, b) => s.partner[b] - s.partner[a])[0] || 'Sin datos';
+  const c = { white: { n: 0, v: 0 }, black: { n: 0, v: 0 } };
+  s.list.forEach(m => { c[m.t].n++; if (m.res === 'v') c[m.t].v++; });
+  const pc = t => c[t].n ? c[t].v / c[t].n : 0;
+  const lucky = c.white.v !== c.black.v ? (c.white.v > c.black.v ? 'white' : 'black') : pc('white') !== pc('black') ? (pc('white') > pc('black') ? 'white' : 'black') : null;
+  const luck = lucky ? `<b>${lucky === 'white' ? '⚪ Blanco' : '⚫ Negro'}</b><span>${c[lucky].v} victorias en ${c[lucky].n} partidos (${Math.round(pc(lucky) * 100)} %)</span>` : `<b>Sin favorito</b><span>Aún no destaca ningún color</span>`;
+  const med = logros(sel).map(x => `<span>${x.e} ${esc(x.n)}${x.c > 1 ? ' ×' + x.c : ''}</span>`).join('') || '<span style="color:var(--mut)">Aún sin medallas</span>';
+  const tile = (n, l, cl) => `<div class="t ${cl || ''}"><b>${n}</b><span>${l}</span></div>`;
+  return `
+  <div class="card head">${avatar(sel, s.name)}<div><h3>${esc(s.name)}</h3><small>${s.pj} partidos jugados</small><br><label class="foto" for="file">📷 Cambiar foto</label></div></div>
+  <div class="card"><h2>Partidos jugados</h2><div class="ringbox">${ring(s.v, s.e, s.d)}<div class="vde">${tile(s.v, 'Victorias', 'v')}${tile(s.e, 'Empates', 'e')}${tile(s.d, 'Derrotas', 'd')}</div></div></div>
+  <div class="card"><h2>Rendimiento</h2><div class="row2">${tile(s.goals, 'Goles')}${tile(s.ast, 'Asistencias')}${tile(s.def, 'Recuperaciones')}${tile('⭐ ' + s.mvp, 'MVPs')}${tile(prec.toFixed(0) + '%', 'Precisión de tiro')}${tile('😈 ' + s.fl, 'Faltas')}</div></div>
+  <div class="card"><h2>Medallas</h2><div class="med">${med}</div></div>
+  <div class="card"><h2>Perfil de juego</h2>${radar(vals)}
+    <div class="row2" style="margin-top:12px"><div class="t"><b style="font-size:1.1rem;line-height:1.7">🤝 ${esc(partner)}</b><span>Mejor socio</span></div><div class="t luck"><span>🍀 Color de la suerte</span>${luck}</div></div></div>`;
+}
+
+function pitch(m) {
+  const S = [[28, 100], [80, 52], [80, 148], [135, 52], [135, 148], [108, 100], [55, 100]];
+  const draw = side => m.lu[side].map((p, i) => {
+    const [x0, y] = S[Math.min(i, 6)], x = side === 'white' ? x0 : 340 - x0, me = p.k === sel, w = side === 'white';
+    const ini = p.name.split(/\s+/).slice(0, 2).map(t => t[0]).join('').toUpperCase();
+    return `<g><circle cx="${x}" cy="${y}" r="${me ? 19 : 16}" fill="${w ? '#fff' : '#2c3a33'}" stroke="${me ? '#f5b301' : (w ? '#2c3a33' : '#fff')}" stroke-width="${me ? 4 : 2}"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="900" fill="${w ? '#1c2a24' : '#fff'}">${esc(ini)}</text><text x="${x}" y="${y + 32}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">${esc(p.name.split(/\s+/)[0].slice(0, 9))}</text></g>`;
+  }).join('');
+  return `<svg viewBox="0 0 340 200" style="width:100%;display:block;margin-top:8px;border-radius:10px" role="img" aria-label="Alineaciones del partido"><rect width="340" height="200" fill="#2e8b57"/><g fill="none" stroke="#ffffffaa" stroke-width="2"><rect x="4" y="4" width="332" height="192"/><line x1="170" y1="4" x2="170" y2="196"/><circle cx="170" cy="100" r="28"/><rect x="4" y="55" width="40" height="90"/><rect x="296" y="55" width="40" height="90"/></g>${draw('white')}${draw('black')}</svg><div style="font-size:.72rem;color:var(--mut);margin-top:4px">Izquierda: blanco · Derecha: negro · Borde dorado: tú</div>`;
+}
+
+function partidos() {
+  const s = ALL[sel]; if (!s) return `<div class="card">Busca tu nombre arriba para ver tus partidos.</div>`;
+  const rows = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(m => `
+    <details class="m" style="border-bottom:1px solid #e3e9e5"><summary class="li" style="border:0"><div class="pill ${m.res}">${m.sc.white} - ${m.sc.black}</div>
+      <div class="n">${fmt(m.date)} ${m.mvp ? '⭐' : ''}<small>Equipo ${m.t === 'white' ? 'blanco' : 'negro'} · ${m.g} goles · ${m.a} ast. · ${m.d} REC · ${m.fl} faltas</small></div><span style="color:var(--mut)">▾</span></summary>${pitch(m)}<div style="height:10px"></div></details>`).join('');
+  return `<div class="card"><h2>Mis partidos</h2><small style="color:var(--mut)">Marcador: blanco - negro. Toca un partido para ver las alineaciones.</small>${rows}</div>`;
+}
+
+function ranking() {
+  const months = [...new Set(matches.map(m => monthKey(m.date)))].sort().reverse();
+  const list = mes === 'todo' ? matches : matches.filter(m => monthKey(m.date) === mes);
+  const P = build(list), f = MET[rk][1];
+  const arr = Object.keys(P).filter(k => f(P[k]) !== null).sort((a, b) => (f(P[b]) - f(P[a])) * dir || P[b].goals - P[a].goals);
+  const opts = '<option value="todo">Todo el historial</option>' + months.map(m => { const [y, mo] = m.split('-'); const n = new Date(y, mo - 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }); return `<option value="${m}" ${m === mes ? 'selected' : ''}>${n}</option>`; }).join('');
+  const cats = [['Goles', '⚽', p => p.goals], ['Asistencias', '🎩', p => p.ast], ['Recuperaciones', '🛡️', p => p.def], ['MVPs', '🥇', p => p.mvp], ['Más faltoso', '😈', p => p.fl]];
+  const honor = cats.map(([n, e, g]) => {
+    const ks = Object.keys(P).sort((a, b) => g(P[b]) - g(P[a])), a = ks[0], b = ks[1];
+    if (!a || !g(P[a])) return '';
+    const sec = b && g(P[b]) > 0 ? `2º ${esc(P[b].name)} · ${g(P[a]) === g(P[b]) ? 'empatado' : 'a ' + (g(P[a]) - g(P[b])) + ' del primero'}` : '';
+    return `<div class="hn"><small>${e} ${n}</small><b>${esc(P[a].name)}</b> <b style="color:#1f9d4d">${g(P[a])}</b><div class="s">${sec}</div></div>`;
+  }).join('');
+  const rows = arr.map((k, i) => `<div class="li" onclick="pick('${k}')"><div class="pos">${i + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${P[k].pj} partidos</small></div><div class="val">${f(P[k])}${rk === 'pct' ? '%' : ''}</div></div>`).join('');
+  return `<select id="mes" onchange="mes=this.value;render()" aria-label="Periodo" style="margin-bottom:10px">${opts}</select>
+    <div class="card"><h2>🏅 Cuadro de honor${mes === 'todo' ? '' : ' del mes'}</h2><div class="honor">${honor || 'Aún no hay datos en este periodo.'}</div></div>
+    <div class="chips">${Object.keys(MET).map(k => `<button class="${k === rk ? 'on' : ''}" onclick="rk='${k}';render()">${MET[k][0]}</button>`).join('')}<button onclick="dir=-dir;render()">${dir > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
+    <div class="card">${rows || 'Sin partidos en este periodo.'}</div>`;
+}
+
+function render() {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  $('view').innerHTML = tab === 'ficha' ? ficha() : tab === 'partidos' ? partidos() : ranking();
+}
+function pick(k) { sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function sugerir() {
+  const v = norm($('q').value);
+  const ks = Object.keys(ALL).filter(k => !v || norm(ALL[k].name).includes(v)).sort((a, b) => ALL[a].name.localeCompare(ALL[b].name, 'es')).slice(0, 12);
+  $('sug').innerHTML = ks.map(k => `<div class="sg" data-k="${esc(k)}">${avatar(k, ALL[k].name, 1)}<span>${esc(ALL[k].name)}</span></div>`).join('');
+  $('sug').style.display = ks.length ? 'block' : 'none';
+}
+$('q').oninput = $('q').onfocus = sugerir;
+$('sug').onclick = e => { const d = e.target.closest('.sg'); if (d) pick(d.dataset.k); };
+document.addEventListener('click', e => { if (!e.target.closest('.srch')) $('sug').style.display = 'none'; });
+$('tabs').onclick = e => { if (e.target.dataset.t) { tab = e.target.dataset.t; render(); } };
+
+// Foto: se reduce en el navegador y se guarda junto a los datos (sin Storage)
+$('file').onchange = e => {
+  const f = e.target.files[0]; if (!f || !sel) return;
+  const url = URL.createObjectURL(f), img = new Image();
+  img.onload = async () => {
+    const c = document.createElement('canvas'); c.width = c.height = 160;
+    const m = Math.min(img.width, img.height);
+    c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, 160, 160);
+    const data = c.toDataURL('image/jpeg', .72); URL.revokeObjectURL(url);
+    try { await db.collection('perfiles').doc(docId(sel)).set({ nombre: ALL[sel].name, foto: data }); fotos[docId(sel)] = data; render(); }
+    catch (err) { $('msg').textContent = 'No se pudo guardar la foto. Inténtalo de nuevo.'; }
+    e.target.value = '';
+  };
+  img.onerror = () => { $('msg').textContent = 'No se pudo leer esa imagen. Prueba con otra.'; };
+  img.src = url;
+};
 
 async function load() {
-  const msg = document.getElementById('msg');
   try {
-    const snap = await db.collection('partidos').get();
-    snap.forEach(doc => {
-      const m = doc.data();
-      const seen = {};
-      ['white', 'black'].forEach(team => {
-        ((m.matchData && m.matchData[team] && m.matchData[team].players) || []).forEach(p => {
-          const key = norm(p.name);
-          if (!key) return;
-          const s = players[key] = players[key] || { name: p.name.trim(), matches: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, palos: 0, og: 0, list: [] };
-          const g = p.goalsList ? p.goalsList.length : 0;
-          s.goals += g; s.ast += p.ast || 0; s.def += p.def || 0; s.pta += p.p || 0;
-          s.fue += p.f || 0; s.fl += p.fl || 0; s.og += p.og || 0;
-          s.palos += p.palos ? Object.values(p.palos).reduce((a, b) => a + b, 0) : 0;
-          if (!seen[key]) {
-            seen[key] = true; s.matches++;
-            s.list.push({ date: m.date, score: `${(m.score || {}).white || 0} - ${(m.score || {}).black || 0}`, g, ast: p.ast || 0, def: p.def || 0, fl: p.fl || 0 });
-          }
-        });
-      });
-    });
-    const keys = Object.keys(players).sort((a, b) => players[a].name.localeCompare(players[b].name, 'es'));
-    const sel = document.getElementById('sel');
-    if (!keys.length) { sel.innerHTML = '<option value="">Aún no hay partidos</option>'; msg.textContent = 'Todavía no hay partidos registrados.'; return; }
-    sel.innerHTML = '<option value="">Elige tu nombre</option>' + keys.map(k => `<option value="${k}">${esc(players[k].name)}</option>`).join('');
-    sel.onchange = () => show(sel.value);
-    renderRanking(keys);
-    const wanted = norm(new URLSearchParams(location.search).get('j'));
-    if (wanted && players[wanted]) { sel.value = wanted; show(wanted); }
-  } catch (e) {
-    msg.textContent = 'No se pudieron cargar los datos. Comprueba la conexión e inténtalo de nuevo.';
-  }
+    const [pa, pe] = await Promise.all([db.collection('partidos').get(), db.collection('perfiles').get()]);
+    pa.forEach(d => matches.push(d.data()));
+    pe.forEach(d => { fotos[d.id] = d.data().foto; });
+    ALL = build(matches);
+    if (!Object.keys(ALL).length) { $('q').placeholder = 'Aún no hay partidos'; $('msg').textContent = 'Todavía no hay partidos registrados.'; return; }
+    mes = [...new Set(matches.map(m => monthKey(m.date)))].sort().reverse()[0];
+    const w = norm(new URLSearchParams(location.search).get('j'));
+    if (w && ALL[w]) { sel = w; $('q').value = ALL[w].name; } else tab = 'ranking';
+    render();
+  } catch (e) { $('msg').textContent = 'No se pudieron cargar los datos. Comprueba la conexión e inténtalo de nuevo.'; }
 }
-
-function show(key) {
-  const box = document.getElementById('ficha');
-  if (!key) { box.innerHTML = ''; return; }
-  const s = players[key];
-  const shots = s.goals + s.pta + s.fue;
-  const prec = shots ? Math.round((s.goals + s.pta) / shots * 100) : 0;
-  const avg = n => s.matches ? (n / s.matches).toFixed(2) : '0.00';
-  const rows = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8).map(m =>
-    `<tr><td>${new Date(m.date).toLocaleDateString('es-ES')}</td><td>${m.score}</td><td>${m.g}</td><td>${m.ast}</td><td>${m.def}</td><td>${m.fl}</td></tr>`).join('');
-  box.innerHTML = `
-    <h2>${esc(s.name)}</h2>
-    <div class="grid">
-      <div class="stat"><b>${s.matches}</b><span>Partidos jugados</span></div>
-      <div class="stat hot"><b>${s.goals}</b><span>Goles (${avg(s.goals)} por partido)</span></div>
-      <div class="stat"><b>${s.ast}</b><span>Asistencias</span></div>
-      <div class="stat"><b>${s.def}</b><span>Recuperaciones (${avg(s.def)} por partido)</span></div>
-      <div class="stat"><b>${prec}%</b><span>Precisión de tiro (${s.goals + s.pta} de ${shots})</span></div>
-      <div class="stat"><b>${s.fl}</b><span>Faltas · ${s.palos} palos · ${s.og} en propia</span></div>
-    </div>
-    <h2>Últimos partidos</h2>
-    <div class="wrap"><table><tr><th>Fecha</th><th>Blanco - Negro</th><th>Goles</th><th>Ast</th><th>REC</th><th>Faltas</th></tr>${rows}</table></div>`;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function renderRanking(keys) {
-  const sorted = keys.slice().sort((a, b) => players[b].goals - players[a].goals || players[b].ast - players[a].ast);
-  const rows = sorted.map(k => { const p = players[k];
-    return `<tr class="link" onclick="document.getElementById('sel').value='${k}'; show('${k}')"><td>${esc(p.name)}</td><td>${p.matches}</td><td>${p.goals}</td><td>${p.ast}</td><td>${p.def}</td></tr>`; }).join('');
-  document.getElementById('ranking').innerHTML = `<h2>Ranking general</h2><div class="wrap"><table><tr><th>Jugador</th><th>PJ</th><th>Goles</th><th>Ast</th><th>REC</th></tr>${rows}</table></div>`;
-}
-
 load();
 </script>
 </body>
