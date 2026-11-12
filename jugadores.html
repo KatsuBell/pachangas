@@ -6,6 +6,7 @@
 <title>Estadísticas de las pachangas</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="informe.js"></script>
 <style>
 :root{--g:#2fd16a;--e:#9aa5a0;--r:#e5484d;--ink:#1c2a24;--mut:#6b7a72}
 *{box-sizing:border-box}
@@ -68,6 +69,10 @@ textarea{width:100%;padding:9px 11px;font:inherit;border:1px solid #cfdcd4;borde
 .bz button{flex:none;padding:9px 14px;border:0;border-radius:10px;background:#2c3a33;color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .mote{font-size:.78rem;opacity:.55;font-style:italic;margin:1px 0 2px}
 button.foto{border:0;font-family:inherit}
+.pc.g{cursor:pointer}.pc.best{box-shadow:0 0 0 2px #f5b301;background:#fffbe8}
+.gm{font-size:.78rem;font-weight:900;text-transform:uppercase;color:#2c3a33;margin:10px 0 6px}
+.rep-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;overflow:auto;padding:10px}.rep-box{max-width:820px;margin:0 auto;background:#fff;border-radius:12px;padding:8px}
+.rep-x{display:block;margin:0 0 6px auto;padding:6px 14px;border:0;border-radius:8px;background:#2c3a33;color:#fff;font:inherit;font-weight:700;cursor:pointer}
 </style>
 </head>
 <body>
@@ -85,10 +90,12 @@ button.foto{border:0;font-family:inherit}
     <p><b>⚡ Rendimiento</b> · Precisión: tiros que son gol o van a puerta, entre todos tus tiros · MVP: el mejor de cada partido (3 por gol, 2 por asistencia, 0,5 por tiro a puerta y por recuperación, y −1 por falta)</p>
     <p><b>🕸️ Perfil de juego</b> · Ofensiva (goles por partido), Visión (asistencias), Defensa (REC), Puntería (precisión) y Constancia (partidos jugados del total). Cada eje va de 0 a 100</p>
     <p><b>🍀 Extras</b> · Mejor socio: quien más goles tuyos asiste · Color de la suerte: el equipo con el que más ganas</p>
+    <p><b>📅 Partidos</b> · Toca uno para ver su informe · 🔥 Partidazo: el partido con más goles del periodo</p>
     <p><b>🏅 Ránking</b> · Sigue el periodo elegido arriba · Los rankings de perfil y el % de victorias piden 3 partidos o más · Las faltas son de broma</p>
     <p><b>🎖️ Medallas</b> · Cada una explica qué la da y cuándo la lograste · Las mensuales se dan al acabar el mes y los empates la comparten</p>
     <p><b>📷 Foto, nombre y mote</b> · Puedes quitar tu foto cuando quieras · Nombre y mote los aprueba el administrador</p></div>
   <input type="file" id="file" accept="image/*" hidden>
+  <div class="rep-ov" id="rep" onclick="if(event.target===this)cerrarInforme()"><div class="rep-box"><button class="rep-x" onclick="cerrarInforme()">✕ Cerrar</button><div id="rep-body"></div></div></div>
 </main>
 
 <script>
@@ -106,7 +113,8 @@ const db = firebase.firestore();
 const norm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const docId = k => k.replace(/[^a-z0-9]+/g, '_');
-const NM = {}, ALIAS = {};
+const NM = {}, ALIAS = {}, MBY = {};
+let LIST = [];
 const kk = n => ALIAS[norm(n)] || norm(n);
 const dn = n => (NM[kk(n)] && NM[kk(n)].mostrar) || n;
 const $ = id => document.getElementById(id);
@@ -139,7 +147,7 @@ function build(list) {
       const res = mine > opp ? 'v' : mine < opp ? 'd' : 'e', isMvp = r.k === mvpKey;
       s.pj++; s[res]++; s.goals += r.g; s.ast += r.a; s.def += r.d; s.pta += r.pt; s.fue += r.f; s.fl += r.fl;
       s.fair += Math.max(0, 3 - r.fl); if (isMvp) s.mvp++;
-      s.list.push({ date: m.date, sc, t: r.t, res, g: r.g, a: r.a, d: r.d, fl: r.fl, mvp: isMvp, lu, sw: !!m.swapped });
+      s.list.push({ date: m.date, sc, t: r.t, res, g: r.g, a: r.a, d: r.d, fl: r.fl, mvp: isMvp, lu, sw: !!m.swapped, id: m.id });
     });
     (m.goalsTimeline || []).forEach(g => {
       const k = kk(g.player);
@@ -251,7 +259,7 @@ function pitch(m) {
 function partidos() {
   const s = PER[sel]; if (!s) return `<div class="card">Este jugador no tiene partidos en el periodo elegido.</div>`;
   const cards = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(m => `
-    <div class="pc ${m.res}"><div class="ph"><span>${fmt(m.date)}${m.mvp ? ' ⭐' : ''}</span><span class="sc"><b class="${m.sw ? 'sb' : 'sw'}">${m.sw ? m.sc.black : m.sc.white}</b><b class="${m.sw ? 'sw' : 'sb'}">${m.sw ? m.sc.white : m.sc.black}</b></span></div>${pitch(m)}<small>${m.g} G · ${m.a} A · ${m.d} REC · ${m.fl} F</small></div>`).join('');
+    <div class="pc g ${m.res}" onclick="abrirInforme('${m.id}')"><div class="ph"><span>${fmt(m.date)}${m.mvp ? ' ⭐' : ''}</span><span class="sc"><b class="${m.sw ? 'sb' : 'sw'}">${m.sw ? m.sc.black : m.sc.white}</b><b class="${m.sw ? 'sw' : 'sb'}">${m.sw ? m.sc.white : m.sc.black}</b></span></div>${pitch(m)}<small>${m.g} G · ${m.a} A · ${m.d} REC · ${m.fl} F</small></div>`).join('');
   return `<div class="card"><h2>Mis partidos</h2><div class="pg">${cards}</div><small style="color:var(--mut);font-size:.68rem;display:block;margin-top:6px">Cada mini campo respeta el lado en que jugó cada equipo. Borde dorado: tú. Borde de la tarjeta: verde victoria, gris empate, rojo derrota.</small></div>`;
 }
 
@@ -271,7 +279,8 @@ function ranking() {
   return `<div class="card"><h2>🏅 Cuadro de honor${mes === 'todo' ? '' : ' del periodo'}</h2><div class="honor">${honor || 'Aún no hay datos en este periodo.'}</div></div>
     <div class="chips">${Object.keys(MET).map(k => `<button class="${k === rk ? 'on' : ''}" onclick="rk='${k}';render()">${MET[k][0]}</button>`).join('')}<button onclick="dir=-dir;render()">${dir > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
     ${pos ? `<div class="note">Tu puesto en ${MET[rk][0]}: ${pos}º de ${arr.length}</div>` : ''}
-    <div class="card">${rows || 'Sin partidos en este periodo.'}</div>`;
+    <div class="card">${rows || 'Sin partidos en este periodo.'}</div>
+    <div class="card"><h2>📅 Partidos${mes === 'todo' ? '' : ' del periodo'}</h2>${galeria()}</div>`;
 }
 
 function render() {
@@ -279,7 +288,7 @@ function render() {
   $('tabs').style.display = sel ? 'flex' : 'none';
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
   const L = mes === 'todo' ? matches : matches.filter(m => monthKey(m.date) === mes);
-  PER = build(L); NP = L.length;
+  PER = build(L); NP = L.length; LIST = L;
   $('view').innerHTML = tab === 'ficha' ? ficha() : tab === 'partidos' ? partidos() : ranking();
 }
 async function enviar(o) {
@@ -301,6 +310,23 @@ $('bz-b').onclick = async () => {
   const n = $('bz-n').value.trim() || (sel && ALL[sel] ? ALL[sel].name : 'Anónimo');
   if (await enviar({ tipo: 'sugerencia', autor: n.slice(0, 60), texto: t.slice(0, 500) })) $('bz-t').value = '';
 };
+function abrirInforme(id) { const m = MBY[String(id)]; if (!m) return; $('rep-body').innerHTML = Informe.html(m); $('rep').style.display = 'block'; $('rep').scrollTop = 0; }
+function cerrarInforme() { $('rep').style.display = 'none'; }
+function galeria() {
+  if (!LIST.length) return 'Sin partidos en este periodo.';
+  const tot = m => m.score.white + m.score.black, dif = m => Math.abs(m.score.white - m.score.black);
+  const best = LIST.reduce((b, m) => !b || tot(m) > tot(b) || (tot(m) === tot(b) && dif(m) < dif(b)) ? m : b, null);
+  const card = m => {
+    const sw = !!m.swapped, lu = { white: [], black: [] };
+    ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => lu[t].push({ k: kk(p.name), name: dn(p.name) })));
+    const a = `<b class="sw">${m.score.white}</b>`, b = `<b class="sb">${m.score.black}</b>`;
+    return `<div class="pc g${m === best ? ' best' : ''}" onclick="abrirInforme('${m.id}')"><div class="ph"><span>${fmt(m.date)}${m === best ? ' 🔥' : ''}</span><span class="sc">${sw ? b + a : a + b}</span></div>${pitch({ lu, sw })}<small>${tot(m)} goles${m === best ? ' · Partidazo' : ''}</small></div>`;
+  };
+  const sorted = LIST.slice().sort((x, y) => new Date(y.date) - new Date(x.date));
+  if (mes !== 'todo') return `<div class="pg">${sorted.map(card).join('')}</div>`;
+  const por = {}; sorted.forEach(m => (por[monthKey(m.date)] = por[monthKey(m.date)] || []).push(m));
+  return Object.keys(por).sort().reverse().map(mk => `<div class="gm">${mname(mk)}</div><div class="pg">${por[mk].map(card).join('')}</div>`).join('');
+}
 function pick(k) { sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function sugerir() {
   const v = norm($('q').value);
@@ -336,6 +362,7 @@ async function load() {
     if (nm) nm.forEach(d => { const x = d.data(); if (x.key) { NM[x.key] = x; if (x.mostrar) ALIAS[norm(x.mostrar)] = x.key; } });
     pa.forEach(d => matches.push(d.data()));
     pe.forEach(d => { fotos[d.id] = d.data().foto; });
+    matches.forEach(m => { MBY[String(m.id)] = m; });
     ALL = build(matches);
     if (!Object.keys(ALL).length) { $('q').placeholder = 'Aún no hay partidos'; $('msg').textContent = 'Todavía no hay partidos registrados.'; return; }
     const months = [...new Set(matches.map(m => monthKey(m.date)))].sort().reverse(), cur = monthKey(new Date());
