@@ -7,69 +7,74 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-:root{--g:#2fd16a;--e:#9aa5a0;--r:#e5484d;--ink:#1c2a24;--mut:#6b7a72;--card:rgba(255,255,255,.86)}
+:root{--g:#2fd16a;--e:#9aa5a0;--r:#e5484d;--ink:#1c2a24;--mut:#6b7a72}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-background:radial-gradient(circle at 20% 0,#3f8f5f 0,transparent 45%),radial-gradient(circle at 90% 100%,#2b6b47 0,transparent 50%),#d9e6dd}
-main{max-width:780px;margin:0 auto;padding:18px 14px 40px}
-h1{margin:0 0 12px;font-size:2rem;font-weight:900;text-transform:uppercase;letter-spacing:-.5px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.25)}
-h2{margin:0 0 14px;font-size:1.05rem;font-weight:900;text-transform:uppercase}
-.card{background:var(--card);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.7);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
-select{width:100%;padding:13px;font-size:1rem;border:0;border-radius:12px;background:var(--card);color:var(--ink);font-weight:600}
-.tabs{display:flex;gap:6px;margin:12px 0;background:var(--card);padding:5px;border-radius:14px}
-.tabs button{flex:1;padding:10px 4px;border:0;border-radius:10px;background:none;font:inherit;font-weight:700;color:var(--mut);cursor:pointer}
+body{margin:0;min-height:100vh;color:var(--ink);font:14px/1.35 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:repeating-linear-gradient(90deg,#f0f7f2 0 56px,#e7f2eb 56px 112px)}
+main{max-width:900px;margin:0 auto;padding:12px 12px 30px}
+h1{margin:0 0 8px;font-size:1.35rem;font-weight:900;text-transform:uppercase;color:#1f5a3c;letter-spacing:-.3px}
+h2{margin:0 0 8px;font-size:.78rem;font-weight:900;text-transform:uppercase;color:#2c3a33;letter-spacing:.3px}
+.card{background:rgba(255,255,255,.94);border:1px solid #dbe6df;border-radius:14px;padding:11px;margin-bottom:9px;box-shadow:0 2px 8px rgba(30,60,45,.06)}
+.top{display:flex;gap:8px;margin-bottom:8px}.top .srch{flex:1;min-width:0}.top select{width:auto;max-width:48%}
+select,.srch input{width:100%;padding:9px 11px;font-size:.92rem;border:1px solid #cfdcd4;border-radius:10px;background:#fff;color:var(--ink);font-weight:600}
+.srch{position:relative}
+#sug{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:5;max-height:280px;overflow:auto}
+.sg{display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;font-weight:600}.sg:hover{background:#eef3ef}
+.tabs{display:none;gap:5px;margin-bottom:9px;background:rgba(255,255,255,.94);padding:4px;border-radius:12px;border:1px solid #dbe6df}
+.tabs button{flex:1;padding:7px 4px;border:0;border-radius:9px;background:none;font:inherit;font-weight:700;color:var(--mut);cursor:pointer}
 .tabs button.on{background:#2c3a33;color:#fff}
-.head{display:flex;align-items:center;gap:14px}
-.av{flex:none;width:78px;height:78px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:1.7rem;background-size:cover;background-position:center;border:3px solid #fff;box-shadow:0 0 0 3px var(--ring,#2fd16a)}
-.av.s{width:38px;height:38px;font-size:.85rem;border-width:2px;box-shadow:none}
-.head h3{margin:0;font-size:1.9rem;line-height:1.05;font-weight:900;text-transform:uppercase;word-break:break-word}
+.head{display:flex;align-items:center;gap:11px}
+.av{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:1.2rem;background-size:cover;background-position:center;border:2px solid #fff;box-shadow:0 0 0 2px #2fd16a}
+.av.s{width:30px;height:30px;font-size:.7rem;border-width:1px;box-shadow:none}
+.head h3{margin:0;font-size:1.35rem;line-height:1.05;font-weight:900;text-transform:uppercase;word-break:break-word}
 .head small{color:var(--mut);font-weight:600}
-.foto{display:inline-block;margin-top:6px;font-size:.8rem;font-weight:700;color:#2c3a33;background:#fff;padding:5px 10px;border-radius:99px;cursor:pointer}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ringbox{display:flex;align-items:center;gap:14px}
-.ringbox svg{flex:none}
-.vde{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1}
-.t{background:#fff;border:1px solid #e3e9e5;border-radius:12px;padding:10px 6px;text-align:center}
-.t b{display:block;font-size:1.9rem;font-weight:900;line-height:1.1}
-.t span{font-size:.7rem;font-weight:700;color:var(--mut);text-transform:uppercase}
+.foto{display:inline-block;margin-top:4px;font-size:.72rem;font-weight:700;color:#2c3a33;background:#e9f1ec;padding:3px 9px;border-radius:99px;cursor:pointer}
+.g3{display:grid;grid-template-columns:1fr 1fr;gap:9px}.g3 .card{margin:0}.span{grid-column:1/-1}
+@media(min-width:720px){.g3{grid-template-columns:1fr 1.1fr 1.1fr}.span{grid-column:auto}}
+.g3,.card.head{margin-bottom:9px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rb{display:flex;flex-direction:column;align-items:center;gap:7px}
+.vde{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%}
+.t{background:#fff;border:1px solid #e3e9e5;border-radius:10px;padding:6px 4px;text-align:center}
+.t b{display:block;font-size:1.2rem;font-weight:900;line-height:1.1}
+.t span{font-size:.6rem;font-weight:700;color:var(--mut);text-transform:uppercase}
 .v b{color:var(--g)}.e b{color:var(--e)}.d b{color:var(--r)}
-.fp{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.fp b{font-size:2.2rem;font-weight:900}
-.bar{height:10px;background:#dfe7e2;border-radius:9px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--g)}
-.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
-.chips button{flex:none;padding:7px 12px;border:0;border-radius:99px;background:#fff;font:inherit;font-size:.85rem;font-weight:700;color:var(--mut);cursor:pointer}
-.chips button.on{background:var(--g);color:#06260f}
-.li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e3e9e5;cursor:pointer}
-.li:last-child{border:0}
-.pos{width:22px;text-align:center;font-weight:900;color:var(--mut)}
-.li .n{flex:1;font-weight:700}.li .n small{display:block;font-weight:500;color:var(--mut);font-size:.75rem}
-.li .val{font-size:1.4rem;font-weight:900}
-.pill{flex:none;min-width:62px;text-align:center;padding:7px 8px;border-radius:10px;font-weight:900;color:#fff}
-.pill.v{background:var(--g);color:#06260f}.pill.e{background:var(--e)}.pill.d{background:var(--r)}
-#msg{text-align:center;color:#fff;font-weight:600;margin:14px 0}
-.rad{display:block;margin:0 auto;max-width:300px;width:100%}
-:focus-visible{outline:3px solid #fff;outline-offset:2px}
-.srch{position:relative}.srch input{width:100%;padding:13px;font-size:1rem;border:0;border-radius:12px;background:var(--card);color:var(--ink);font-weight:600}
-#sug{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:5;max-height:300px;overflow:auto}
-.sg{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font-weight:600}.sg:hover{background:#eef3ef}
-.honor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hn{background:#fff;border-radius:12px;padding:10px}
-.hn small{display:block;color:var(--mut);font-weight:700;font-size:.7rem;text-transform:uppercase}.hn b{font-size:1.05rem}.hn .s{font-size:.75rem;color:var(--mut);margin-top:4px}
-.med{display:flex;flex-wrap:wrap;gap:6px}.med span{background:#fff;border:1px solid #e3e9e5;border-radius:99px;padding:6px 10px;font-weight:700;font-size:.82rem}
-.luck b{font-size:1.3rem}.luck span{display:block;text-transform:none;font-weight:600}
-details.gl summary{font-weight:900;text-transform:uppercase;cursor:pointer}details.gl p{margin:8px 0 0;font-size:.88rem;color:#3b4a42}
-details.m>summary{list-style:none}details.m>summary::-webkit-details-marker{display:none}
+.luck b{font-size:1rem}.luck span{display:block;text-transform:none;font-size:.68rem}
+.chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:5px;margin-bottom:6px}
+.chips button{flex:none;padding:5px 10px;border:1px solid #dbe6df;border-radius:99px;background:#fff;font:inherit;font-size:.78rem;font-weight:700;color:var(--mut);cursor:pointer}
+.chips button.on{background:var(--g);color:#06260f;border-color:var(--g)}
+.li{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #e8eeea;cursor:pointer}
+.li:last-child{border:0}.li.me{background:#fff7da;border:2px solid #f5b301;border-radius:10px}
+.pos{width:20px;text-align:center;font-weight:900;color:var(--mut)}
+.li .n{flex:1;font-weight:700}.li .n small{display:block;font-weight:500;color:var(--mut);font-size:.7rem}
+.li .val{font-size:1.1rem;font-weight:900}
+.honor{display:grid;grid-template-columns:1fr 1fr;gap:7px}.hn{background:#fff;border:1px solid #e3e9e5;border-radius:10px;padding:7px 9px}
+@media(min-width:720px){.honor{grid-template-columns:repeat(5,1fr)}}
+.hn small{display:block;color:var(--mut);font-weight:700;font-size:.62rem;text-transform:uppercase}.hn b{font-size:.92rem}.hn .s{font-size:.66rem;color:var(--mut);margin-top:2px}
+.note{font-size:.78rem;font-weight:700;color:#8a6a00;margin-bottom:6px}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px}
+.pc{background:#fff;border-radius:10px;padding:6px 7px;border-left:4px solid var(--e)}.pc.v{border-color:var(--g)}.pc.d{border-color:var(--r)}
+.ph{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:700;margin-bottom:4px}
+.sc b{padding:1px 6px;border:1.5px solid #2c3a33;font-size:.8rem}.sw{background:#fff;color:#1c2a24;border-radius:5px 0 0 5px}.sb{background:#2c3a33;color:#fff;border-radius:0 5px 5px 0}
+.pc small{display:block;color:var(--mut);font-size:.65rem;margin-top:3px;text-align:center}
+.med{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px}
+.mi{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid #e3e9e5;border-radius:10px;padding:6px 8px}
+.mi b{font-size:.82rem}.mi small{display:block;color:var(--mut);font-size:.68rem;line-height:1.25}
+.gl p{margin:3px 0;font-size:.72rem;color:#3b4a42}
+#msg{text-align:center;color:#1f5a3c;font-weight:600;margin:8px 0}
+.rad{display:block;margin:0 auto 6px;max-width:230px;width:100%}
+:focus-visible{outline:3px solid #f5b301;outline-offset:2px}
 </style>
 </head>
 <body>
 <main>
   <h1>Estadísticas</h1>
-  <div class="srch"><input id="q" type="search" placeholder="Escribe tu nombre…" autocomplete="off" aria-label="Buscar jugador"><div id="sug"></div></div>
+  <div class="top"><div class="srch"><input id="q" type="search" placeholder="Escribe tu nombre…" autocomplete="off" aria-label="Buscar jugador"><div id="sug"></div></div><select id="mes" aria-label="Periodo"></select></div>
   <div class="tabs" id="tabs">
     <button data-t="ficha">Ficha</button><button data-t="partidos">Partidos</button><button data-t="ranking">Ránking</button>
   </div>
   <div id="msg"></div>
   <div id="view"></div>
-  <details class="card gl"><summary>Glosario: cómo se calcula todo</summary>
+  <div class="card gl"><h2>Mini guía: cómo se calcula todo</h2>
     <p><b>PJ:</b> partidos jugados. <b>REC:</b> recuperaciones, es decir, balones robados o cortes defensivos que se apuntan durante el partido.</p>
     <p><b>Goles y asistencias:</b> los goles en propia puerta no cuentan como gol del jugador. <b>Precisión de tiro:</b> (goles + tiros a puerta) entre todos los tiros, incluidos los que van fuera.</p>
     <p><b>MVP:</b> en cada partido gana quien más puntos suma: 3 por gol, 2 por asistencia, 0,5 por tiro a puerta y 0,5 por recuperación, menos 1 por falta. Si hay empate, gana quien más goles tenga.</p>
@@ -77,8 +82,9 @@ details.m>summary{list-style:none}details.m>summary::-webkit-details-marker{disp
     <p><b>Mejor socio:</b> quien más goles tuyos ha asistido. <b>Color de la suerte:</b> el equipo, blanco o negro, con el que más victorias llevas; si hay empate, decide el porcentaje de victorias.</p>
     <p><b>Faltas:</b> se apuntan en plan broma y solo cuentan para el premio de Más faltoso. <b>% victorias</b> en el ránking solo se calcula con 3 partidos o más.</p>
     <p><b>Medallas mensuales:</b> se conceden cuando acaba el mes, y los empates las comparten. Bota de Oro (goles), Balón de Oro (MVPs), El Mago (asistencias), La Muralla (REC), El Francotirador (mejor efectividad en un partido, con 5 tiros o más), Gatillo Fácil (más tiros en un partido), Fuego Amigo (goles en propia) y Más faltoso. <b>Fiel:</b> haber jugado todos los partidos de un mes con 3 o más. <b>De siempre:</b> Hat-trick (3 goles o más en un partido), Racha ganadora (3 victorias seguidas o más) y Dúo dinámico (3 goles o más asistidos por el mismo compañero).</p>
+    <p><b>Periodo:</b> la ficha, los partidos y el ránking siguen el periodo elegido arriba; las medallas son de todo el historial.</p>
     <p><b>Fotos:</b> se reducen y se guardan junto a los datos. Si ves una que no debería estar, avisa al administrador.</p>
-  </details>
+  </div>
   <input type="file" id="file" accept="image/*" hidden>
 </main>
 
@@ -102,7 +108,7 @@ const fmt = d => { d = new Date(d); return String(d.getDate()).padStart(2, '0') 
 const monthKey = d => { d = new Date(d); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
 const MET = { goles: ['Goles', p => p.goals], asist: ['Asist.', p => p.ast], rec: ['REC', p => p.def], mvp: ['MVPs', p => p.mvp], vic: ['Victorias', p => p.v], pct: ['% victorias', p => p.pj >= 3 ? Math.round(p.v / p.pj * 100) : null], pj: ['Partidos', p => p.pj], falt: ['Faltas 😈', p => p.fl] };
 
-let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'goles', mes = 'todo', dir = 1;
+let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'goles', mes = 'todo', dir = 1, PER = {}, NP = 0;
 
 // Agrega estadísticas de una lista de partidos
 function build(list) {
@@ -144,7 +150,7 @@ function avatar(k, name, small) {
 function ring(v, e, d) {
   const C = 2 * Math.PI * 54, tot = v + e + d; let acc = 0;
   const seg = (n, c) => { if (!n) return ''; const l = n / tot * C, s = `<circle cx="70" cy="70" r="54" fill="none" stroke="${c}" stroke-width="14" stroke-dasharray="${l} ${C - l}" stroke-dashoffset="${-acc}" transform="rotate(-90 70 70)"/>`; acc += l; return s; };
-  return `<svg width="130" height="130" viewBox="0 0 140 140" role="img" aria-label="Partidos jugados: ${tot}"><circle cx="70" cy="70" r="54" fill="none" stroke="#dfe7e2" stroke-width="14"/>${seg(v, '#2fd16a')}${seg(e, '#9aa5a0')}${seg(d, '#e5484d')}<text x="70" y="68" text-anchor="middle" font-size="34" font-weight="900" fill="#1c2a24">${tot}</text><text x="70" y="88" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7a72">PARTIDOS</text></svg>`;
+  return `<svg width="92" height="92" viewBox="0 0 140 140" role="img" aria-label="Partidos jugados: ${tot}"><circle cx="70" cy="70" r="54" fill="none" stroke="#dfe7e2" stroke-width="14"/>${seg(v, '#2fd16a')}${seg(e, '#9aa5a0')}${seg(d, '#e5484d')}<text x="70" y="68" text-anchor="middle" font-size="34" font-weight="900" fill="#1c2a24">${tot}</text><text x="70" y="88" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7a72">PARTIDOS</text></svg>`;
 }
 
 function radar(vals) {
@@ -164,56 +170,62 @@ function rowsOf(m) {
   }));
   return r;
 }
+const mname = mk => { const [y, m] = mk.split('-'); return new Date(y, m - 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }); };
+const MC = { 'Bota de Oro': '#e0a100', 'Balón de Oro': '#e0a100', 'El Mago': '#8e5bd9', 'La Muralla': '#3f7fbf', 'Más faltoso': '#d9632b', 'El Francotirador': '#d94a4a', 'Gatillo Fácil': '#e8832a', 'Fuego Amigo': '#2f9e5b', 'Fiel': '#1f9d9d', 'Hat-trick': '#c9a000', 'Racha': '#d9482b', 'Duo': '#d14a9a' };
+const medal = (e, c) => `<svg width="34" height="44" viewBox="0 0 38 48" aria-hidden="true"><path d="M9 0h8l4 16h-8z" fill="${c}"/><path d="M29 0h-8l-4 16h8z" fill="${c}" opacity=".7"/><circle cx="19" cy="31" r="15" fill="${c}"/><circle cx="19" cy="31" r="12" fill="#fff" fill-opacity=".92" stroke="${c}" stroke-width="2"/><text x="19" y="37" text-anchor="middle" font-size="15">${e}</text></svg>`;
 
 // Premios de un mes (los empates comparten)
 function premiosMes(list) {
   const P = build(list), out = [];
-  const top = (n, e, M) => { let mx = 0, ks = []; for (const k in M) { if (M[k] > mx) { mx = M[k]; ks = [k]; } else if (M[k] === mx && mx > 0) ks.push(k); } if (ks.length) out.push({ n, e, keys: ks }); };
+  const top = (n, e, M, u) => { let mx = 0, ks = []; for (const k in M) { if (M[k] > mx) { mx = M[k]; ks = [k]; } else if (M[k] === mx && mx > 0) ks.push(k); } if (ks.length) out.push({ n, e, keys: ks, M, u }); };
   const of = f => Object.fromEntries(Object.keys(P).map(k => [k, f(P[k])]));
-  top('Bota de Oro', '⚽', of(p => p.goals)); top('Balón de Oro', '🥇', of(p => p.mvp)); top('El Mago', '🎩', of(p => p.ast));
-  top('La Muralla', '🛡️', of(p => p.def)); top('Más faltoso', '😈', of(p => p.fl));
+  top('Bota de Oro', '⚽', of(p => p.goals), v => `${v} goles`); top('Balón de Oro', '🥇', of(p => p.mvp), v => `${v} MVPs`);
+  top('El Mago', '🎩', of(p => p.ast), v => `${v} asistencias`); top('La Muralla', '🛡️', of(p => p.def), v => `${v} recuperaciones`);
+  top('Más faltoso', '😈', of(p => p.fl), v => `${v} faltas`);
   const E = {}, T = {}, O = {};
   list.forEach(m => rowsOf(m).forEach(r => { const sh = r.g + r.pt + r.f; E[r.k] = Math.max(E[r.k] || 0, sh >= 5 ? r.g / sh : 0); T[r.k] = Math.max(T[r.k] || 0, sh); O[r.k] = (O[r.k] || 0) + r.og; }));
-  top('El Francotirador', '🎯', E); top('Gatillo Fácil', '🔫', T); top('Fuego Amigo', '🤡', O);
+  top('El Francotirador', '🎯', E, v => `${Math.round(v * 100)} % de efectividad en un partido`); top('Gatillo Fácil', '🔫', T, v => `${v} tiros en un partido`); top('Fuego Amigo', '🤡', O, v => `${v} en propia`);
   return out;
 }
 
 function logros(k) {
-  const o = {}, add = (n, e) => { o[n] = o[n] ? { n, e, c: o[n].c + 1 } : { n, e, c: 1 }; };
+  const o = {}, add = (id, n, e, w) => { (o[id] = o[id] || { id, n, e, why: [] }).why.push(w); };
   const por = {}; matches.forEach(m => (por[monthKey(m.date)] = por[monthKey(m.date)] || []).push(m));
   const s = ALL[k], hoy = monthKey(new Date());
-  Object.keys(por).filter(mk => mk < hoy).forEach(mk => {
-    premiosMes(por[mk]).forEach(p => { if (p.keys.includes(k)) add(p.n, p.e); });
-    if (por[mk].length >= 3 && s.list.filter(x => monthKey(x.date) === mk).length === por[mk].length) add('Fiel', '🤝');
+  Object.keys(por).filter(mk => mk < hoy).sort().forEach(mk => {
+    premiosMes(por[mk]).forEach(p => { if (p.keys.includes(k)) add(p.n, p.n, p.e, `${mname(mk)}: ${p.u(p.M[k])}`); });
+    const jug = s.list.filter(x => monthKey(x.date) === mk).length;
+    if (por[mk].length >= 3 && jug === por[mk].length) add('Fiel', 'Fiel', '🤝', `${mname(mk)}: jugó los ${jug} partidos`);
   });
-  const ht = s.list.filter(m => m.g >= 3).length; if (ht) o['Hat-trick'] = { n: 'Hat-trick', e: '⚡', c: ht };
+  const ht = s.list.filter(m => m.g >= 3).length; if (ht) add('Hat-trick', 'Hat-trick', '⚡', `${ht} partido(s) con 3 goles o más`);
   let best = 0, cur = 0;
   s.list.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(m => { cur = m.res === 'v' ? cur + 1 : 0; best = Math.max(best, cur); });
-  if (best >= 3) o['Racha'] = { n: `Racha de ${best} victorias`, e: '🔥', c: 1 };
+  if (best >= 3) add('Racha', 'Racha ganadora', '🔥', `${best} victorias seguidas`);
   const pr = Object.keys(s.partner).sort((a, b) => s.partner[b] - s.partner[a])[0];
-  if (pr && s.partner[pr] >= 3) o['Duo'] = { n: `Dúo dinámico con ${pr}`, e: '🎯', c: 1 };
+  if (pr && s.partner[pr] >= 3) add('Duo', 'Dúo dinámico', '🎯', `${s.partner[pr]} goles asistidos por ${pr}`);
   return Object.values(o);
 }
 
 function ficha() {
-  const s = ALL[sel]; if (!s) return `<div class="card">Busca tu nombre arriba para ver tu ficha.</div>`;
+  const s = PER[sel]; if (!s) return `<div class="card">Este jugador no tiene partidos en el periodo elegido.</div>`;
   const pm = s.pj || 1, shots = s.goals + s.pta + s.fue, prec = (s.goals + s.pta) / Math.max(1, shots) * 100;
-  const vals = [Math.min(100, s.goals / pm / 2.5 * 100), Math.min(100, s.ast / pm / 2 * 100), Math.min(100, s.def / pm / 4 * 100), prec, s.pj / Math.max(1, matches.length) * 100];
+  const vals = [Math.min(100, s.goals / pm / 2.5 * 100), Math.min(100, s.ast / pm / 2 * 100), Math.min(100, s.def / pm / 4 * 100), prec, s.pj / Math.max(1, NP) * 100];
   const partner = Object.keys(s.partner).sort((a, b) => s.partner[b] - s.partner[a])[0] || 'Sin datos';
   const c = { white: { n: 0, v: 0 }, black: { n: 0, v: 0 } };
   s.list.forEach(m => { c[m.t].n++; if (m.res === 'v') c[m.t].v++; });
   const pc = t => c[t].n ? c[t].v / c[t].n : 0;
   const lucky = c.white.v !== c.black.v ? (c.white.v > c.black.v ? 'white' : 'black') : pc('white') !== pc('black') ? (pc('white') > pc('black') ? 'white' : 'black') : null;
-  const luck = lucky ? `<b>${lucky === 'white' ? '⚪ Blanco' : '⚫ Negro'}</b><span>${c[lucky].v} victorias en ${c[lucky].n} partidos (${Math.round(pc(lucky) * 100)} %)</span>` : `<b>Sin favorito</b><span>Aún no destaca ningún color</span>`;
-  const med = logros(sel).map(x => `<span>${x.e} ${esc(x.n)}${x.c > 1 ? ' ×' + x.c : ''}</span>`).join('') || '<span style="color:var(--mut)">Aún sin medallas</span>';
+  const luck = lucky ? `<b>${lucky === 'white' ? '⚪ Blanco' : '⚫ Negro'}</b><span>${c[lucky].v} victorias en ${c[lucky].n} (${Math.round(pc(lucky) * 100)} %)</span>` : `<b>Sin favorito</b><span>Ningún color destaca</span>`;
+  const med = logros(sel).map(x => `<div class="mi">${medal(x.e, MC[x.id])}<div><b>${esc(x.n)}${x.why.length > 1 ? ' ×' + x.why.length : ''}</b><small>${esc(x.why.slice(0, 3).join(' · '))}${x.why.length > 3 ? ' …' : ''}</small></div></div>`).join('') || '<span style="color:var(--mut)">Aún sin medallas. Se conceden al acabar cada mes.</span>';
   const tile = (n, l, cl) => `<div class="t ${cl || ''}"><b>${n}</b><span>${l}</span></div>`;
   return `
   <div class="card head">${avatar(sel, s.name)}<div><h3>${esc(s.name)}</h3><small>${s.pj} partidos jugados</small><br><label class="foto" for="file">📷 Cambiar foto</label></div></div>
-  <div class="card"><h2>Partidos jugados</h2><div class="ringbox">${ring(s.v, s.e, s.d)}<div class="vde">${tile(s.v, 'Victorias', 'v')}${tile(s.e, 'Empates', 'e')}${tile(s.d, 'Derrotas', 'd')}</div></div></div>
-  <div class="card"><h2>Rendimiento</h2><div class="row2">${tile(s.goals, 'Goles')}${tile(s.ast, 'Asistencias')}${tile(s.def, 'Recuperaciones')}${tile('⭐ ' + s.mvp, 'MVPs')}${tile(prec.toFixed(0) + '%', 'Precisión de tiro')}${tile('😈 ' + s.fl, 'Faltas')}</div></div>
-  <div class="card"><h2>Medallas</h2><div class="med">${med}</div></div>
-  <div class="card"><h2>Perfil de juego</h2>${radar(vals)}
-    <div class="row2" style="margin-top:12px"><div class="t"><b style="font-size:1.1rem;line-height:1.7">🤝 ${esc(partner)}</b><span>Mejor socio</span></div><div class="t luck"><span>🍀 Color de la suerte</span>${luck}</div></div></div>`;
+  <div class="g3">
+    <div class="card"><h2>Partidos jugados</h2><div class="rb">${ring(s.v, s.e, s.d)}<div class="vde">${tile(s.v, 'Victorias', 'v')}${tile(s.e, 'Empates', 'e')}${tile(s.d, 'Derrotas', 'd')}</div></div></div>
+    <div class="card"><h2>Rendimiento</h2><div class="r2">${tile(s.goals, 'Goles')}${tile(s.ast, 'Asistencias')}${tile(s.def, 'Recuper.')}${tile('⭐ ' + s.mvp, 'MVPs')}${tile(prec.toFixed(0) + '%', 'Precisión')}${tile('😈 ' + s.fl, 'Faltas')}</div></div>
+    <div class="card span"><h2>Perfil de juego</h2>${radar(vals)}<div class="r2"><div class="t"><b style="font-size:.95rem">🤝 ${esc(partner)}</b><span>Mejor socio</span></div><div class="t luck"><span>🍀 Color de la suerte</span>${luck}</div></div></div>
+  </div>
+  <div class="card"><h2>Medallas</h2><div class="med">${med}</div></div>`;
 }
 
 function pitch(m) {
@@ -221,41 +233,42 @@ function pitch(m) {
   const draw = side => m.lu[side].map((p, i) => {
     const [x0, y] = S[Math.min(i, 6)], x = side === 'white' ? x0 : 340 - x0, me = p.k === sel, w = side === 'white';
     const ini = p.name.split(/\s+/).slice(0, 2).map(t => t[0]).join('').toUpperCase();
-    return `<g><circle cx="${x}" cy="${y}" r="${me ? 19 : 16}" fill="${w ? '#fff' : '#2c3a33'}" stroke="${me ? '#f5b301' : (w ? '#2c3a33' : '#fff')}" stroke-width="${me ? 4 : 2}"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="900" fill="${w ? '#1c2a24' : '#fff'}">${esc(ini)}</text><text x="${x}" y="${y + 32}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">${esc(p.name.split(/\s+/)[0].slice(0, 9))}</text></g>`;
+    return `<g><title>${esc(p.name)}</title><circle cx="${x}" cy="${y}" r="${me ? 21 : 18}" fill="${w ? '#fff' : '#2c3a33'}" stroke="${me ? '#f5b301' : (w ? '#2c3a33' : '#fff')}" stroke-width="${me ? 6 : 3}"/><text x="${x}" y="${y + 6}" text-anchor="middle" font-size="16" font-weight="900" fill="${w ? '#1c2a24' : '#fff'}">${esc(ini)}</text></g>`;
   }).join('');
-  return `<svg viewBox="0 0 340 200" style="width:100%;display:block;margin-top:8px;border-radius:10px" role="img" aria-label="Alineaciones del partido"><rect width="340" height="200" fill="#2e8b57"/><g fill="none" stroke="#ffffffaa" stroke-width="2"><rect x="4" y="4" width="332" height="192"/><line x1="170" y1="4" x2="170" y2="196"/><circle cx="170" cy="100" r="28"/><rect x="4" y="55" width="40" height="90"/><rect x="296" y="55" width="40" height="90"/></g>${draw('white')}${draw('black')}</svg><div style="font-size:.72rem;color:var(--mut);margin-top:4px">Izquierda: blanco · Derecha: negro · Borde dorado: tú</div>`;
+  return `<svg viewBox="0 0 340 200" style="width:100%;display:block;border-radius:8px" role="img" aria-label="Alineaciones: blanco a la izquierda, negro a la derecha"><rect width="340" height="200" fill="#3a9b68"/><g fill="none" stroke="#ffffffcc" stroke-width="3"><rect x="4" y="4" width="332" height="192"/><line x1="170" y1="4" x2="170" y2="196"/><circle cx="170" cy="100" r="28"/><rect x="4" y="55" width="40" height="90"/><rect x="296" y="55" width="40" height="90"/></g>${draw('white')}${draw('black')}</svg>`;
 }
 
 function partidos() {
-  const s = ALL[sel]; if (!s) return `<div class="card">Busca tu nombre arriba para ver tus partidos.</div>`;
-  const rows = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(m => `
-    <details class="m" style="border-bottom:1px solid #e3e9e5"><summary class="li" style="border:0"><div class="pill ${m.res}">${m.sc.white} - ${m.sc.black}</div>
-      <div class="n">${fmt(m.date)} ${m.mvp ? '⭐' : ''}<small>Equipo ${m.t === 'white' ? 'blanco' : 'negro'} · ${m.g} goles · ${m.a} ast. · ${m.d} REC · ${m.fl} faltas</small></div><span style="color:var(--mut)">▾</span></summary>${pitch(m)}<div style="height:10px"></div></details>`).join('');
-  return `<div class="card"><h2>Mis partidos</h2><small style="color:var(--mut)">Marcador: blanco - negro. Toca un partido para ver las alineaciones.</small>${rows}</div>`;
+  const s = PER[sel]; if (!s) return `<div class="card">Este jugador no tiene partidos en el periodo elegido.</div>`;
+  const cards = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(m => `
+    <div class="pc ${m.res}"><div class="ph"><span>${fmt(m.date)}${m.mvp ? ' ⭐' : ''}</span><span class="sc"><b class="sw">${m.sc.white}</b><b class="sb">${m.sc.black}</b></span></div>${pitch(m)}<small>${m.g} G · ${m.a} A · ${m.d} REC · ${m.fl} F</small></div>`).join('');
+  return `<div class="card"><h2>Mis partidos</h2><div class="pg">${cards}</div><small style="color:var(--mut);font-size:.68rem;display:block;margin-top:6px">Blanco a la izquierda y negro a la derecha. Borde dorado: tú. Borde de la tarjeta: verde victoria, gris empate, rojo derrota.</small></div>`;
 }
 
 function ranking() {
-  const months = [...new Set(matches.map(m => monthKey(m.date)))].sort().reverse();
-  const list = mes === 'todo' ? matches : matches.filter(m => monthKey(m.date) === mes);
-  const P = build(list), f = MET[rk][1];
+  const P = PER, f = MET[rk][1];
   const arr = Object.keys(P).filter(k => f(P[k]) !== null).sort((a, b) => (f(P[b]) - f(P[a])) * dir || P[b].goals - P[a].goals);
-  const opts = '<option value="todo">Todo el historial</option>' + months.map(m => { const [y, mo] = m.split('-'); const n = new Date(y, mo - 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }); return `<option value="${m}" ${m === mes ? 'selected' : ''}>${n}</option>`; }).join('');
   const cats = [['Goles', '⚽', p => p.goals], ['Asistencias', '🎩', p => p.ast], ['Recuperaciones', '🛡️', p => p.def], ['MVPs', '🥇', p => p.mvp], ['Más faltoso', '😈', p => p.fl]];
   const honor = cats.map(([n, e, g]) => {
     const ks = Object.keys(P).sort((a, b) => g(P[b]) - g(P[a])), a = ks[0], b = ks[1];
     if (!a || !g(P[a])) return '';
-    const sec = b && g(P[b]) > 0 ? `2º ${esc(P[b].name)} · ${g(P[a]) === g(P[b]) ? 'empatado' : 'a ' + (g(P[a]) - g(P[b])) + ' del primero'}` : '';
+    const sec = b && g(P[b]) > 0 ? `2º ${esc(P[b].name)} · ${g(P[a]) === g(P[b]) ? 'empatado' : 'a ' + (g(P[a]) - g(P[b]))}` : '';
     return `<div class="hn"><small>${e} ${n}</small><b>${esc(P[a].name)}</b> <b style="color:#1f9d4d">${g(P[a])}</b><div class="s">${sec}</div></div>`;
   }).join('');
-  const rows = arr.map((k, i) => `<div class="li" onclick="pick('${k}')"><div class="pos">${i + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${P[k].pj} partidos</small></div><div class="val">${f(P[k])}${rk === 'pct' ? '%' : ''}</div></div>`).join('');
-  return `<select id="mes" onchange="mes=this.value;render()" aria-label="Periodo" style="margin-bottom:10px">${opts}</select>
-    <div class="card"><h2>🏅 Cuadro de honor${mes === 'todo' ? '' : ' del mes'}</h2><div class="honor">${honor || 'Aún no hay datos en este periodo.'}</div></div>
+  const pos = sel ? arr.indexOf(sel) + 1 : 0;
+  const rows = arr.map((k, i) => `<div class="li${k === sel ? ' me' : ''}" onclick="pick('${k}')"><div class="pos">${i + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${P[k].pj} partidos</small></div><div class="val">${f(P[k])}${rk === 'pct' ? '%' : ''}</div></div>`).join('');
+  return `<div class="card"><h2>🏅 Cuadro de honor${mes === 'todo' ? '' : ' del periodo'}</h2><div class="honor">${honor || 'Aún no hay datos en este periodo.'}</div></div>
     <div class="chips">${Object.keys(MET).map(k => `<button class="${k === rk ? 'on' : ''}" onclick="rk='${k}';render()">${MET[k][0]}</button>`).join('')}<button onclick="dir=-dir;render()">${dir > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
+    ${pos ? `<div class="note">Tu puesto en ${MET[rk][0]}: ${pos}º de ${arr.length}</div>` : ''}
     <div class="card">${rows || 'Sin partidos en este periodo.'}</div>`;
 }
 
 function render() {
+  if (!sel) tab = 'ranking';
+  $('tabs').style.display = sel ? 'flex' : 'none';
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  const L = mes === 'todo' ? matches : matches.filter(m => monthKey(m.date) === mes);
+  PER = build(L); NP = L.length;
   $('view').innerHTML = tab === 'ficha' ? ficha() : tab === 'partidos' ? partidos() : ranking();
 }
 function pick(k) { sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -265,7 +278,7 @@ function sugerir() {
   $('sug').innerHTML = ks.map(k => `<div class="sg" data-k="${esc(k)}">${avatar(k, ALL[k].name, 1)}<span>${esc(ALL[k].name)}</span></div>`).join('');
   $('sug').style.display = ks.length ? 'block' : 'none';
 }
-$('q').oninput = $('q').onfocus = sugerir;
+$('q').onfocus = sugerir; $('q').oninput = () => { if (!$('q').value.trim() && sel) { sel = ''; render(); } sugerir(); };
 $('sug').onclick = e => { const d = e.target.closest('.sg'); if (d) pick(d.dataset.k); };
 document.addEventListener('click', e => { if (!e.target.closest('.srch')) $('sug').style.display = 'none'; });
 $('tabs').onclick = e => { if (e.target.dataset.t) { tab = e.target.dataset.t; render(); } };
@@ -294,9 +307,12 @@ async function load() {
     pe.forEach(d => { fotos[d.id] = d.data().foto; });
     ALL = build(matches);
     if (!Object.keys(ALL).length) { $('q').placeholder = 'Aún no hay partidos'; $('msg').textContent = 'Todavía no hay partidos registrados.'; return; }
-    mes = [...new Set(matches.map(m => monthKey(m.date)))].sort().reverse()[0];
+    const months = [...new Set(matches.map(m => monthKey(m.date)))].sort().reverse(), cur = monthKey(new Date());
+    mes = months.includes(cur) ? cur : months[0];
+    $('mes').innerHTML = months.map(m => `<option value="${m}">${mname(m)}${m === cur ? ' · en curso' : ''}</option>`).join('') + '<option value="todo">Todo el historial</option>';
+    $('mes').value = mes; $('mes').onchange = () => { mes = $('mes').value; render(); };
     const w = norm(new URLSearchParams(location.search).get('j'));
-    if (w && ALL[w]) { sel = w; $('q').value = ALL[w].name; } else tab = 'ranking';
+    if (w && ALL[w]) { sel = w; tab = 'ficha'; $('q').value = ALL[w].name; }
     render();
   } catch (e) { $('msg').textContent = 'No se pudieron cargar los datos. Comprueba la conexión e inténtalo de nuevo.'; }
 }
@@ -304,4 +320,3 @@ load();
 </script>
 </body>
 </html>
-
