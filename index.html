@@ -355,6 +355,7 @@
                 <button style="background:#8e44ad; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="exportarTodoJSON()">💾 Copia (.json)</button>
                 <button style="background:#e67e22; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="cloudPush()">☁️ Subir</button>
                 <button style="background:#16a085; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="cloudPull()">☁️ Bajar</button>
+                <button style="background:#c0392b; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="abrirSolicitudes()">📮 Solicitudes</button>
                 <input type="file" id="import-json-input" accept=".json" multiple style="display:none;" onchange="importDatabaseJSON(event)">
             </div>
         </div>
@@ -393,6 +394,15 @@
             <input type="text" id="edit-player-input" class="player-input" placeholder="Nuevo nombre">
             <button class="modal-btn" style="background:#2ecc71" onclick="saveEditedPlayerName()">Guardar Nombre</button>
             <button class="modal-btn cancel" onclick="closeModal('modal-edit-player')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal Solicitudes -->
+    <div id="modal-sol" class="modal-overlay">
+        <div class="modal-content" style="max-width:520px; text-align:left;">
+            <h3 style="margin-top:0;">📮 Solicitudes y sugerencias</h3>
+            <div id="sol-list"></div>
+            <button class="modal-btn cancel" style="margin-top:10px;" onclick="closeModal('modal-sol')">Cerrar</button>
         </div>
     </div>
 
@@ -1751,7 +1761,7 @@ const firebaseConfig = {
   messagingSenderId: "320298566253",
   appId: "1:320298566253:web:d0dc7fd586a63133c37564"
 };
-const ADMIN_EMAIL = "cdmisabelcdm@gmail.com";
+const ADMIN_EMAIL = "PEGA_AQUI_TU_EMAIL";
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -1818,6 +1828,38 @@ async function cloudDeleteMatch(id) {
   }
 }
 
-    </script>
+    
+// ===== Solicitudes y sugerencias de los jugadores =====
+const escA = x => String(x == null ? '' : x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const solId = k => k.replace(/[^a-z0-9]+/g, '_');
+async function abrirSolicitudes() {
+  try {
+    if (!(await ensureLogin())) return;
+    const snap = await db.collection('solicitudes').orderBy('fecha', 'desc').get();
+    let h = '';
+    snap.forEach(d => {
+      const s = d.data(), f = new Date(s.fecha).toLocaleDateString('es-ES');
+      const txt = s.tipo === 'sugerencia' ? `<b>💬 ${escA(s.autor)}:</b> ${escA(s.texto)}`
+        : s.tipo === 'nombre' ? `<b>✏️ ${escA(s.actual)}</b> quiere llamarse <b>${escA(s.nuevo)}</b>`
+        : `<b>🏷️ ${escA(s.actual)}</b> quiere el mote <b>${escA(s.nuevo)}</b>`;
+      const ok = s.tipo === 'sugerencia' ? '' : `<button class="modal-btn" style="width:auto;display:inline-block;padding:6px 12px;background:#27ae60" onclick="resolverSolicitud('${d.id}', true)">Aceptar</button> `;
+      h += `<div style="border-bottom:1px solid #ddd;padding:8px 0;font-size:.9rem">${txt}<div style="color:#888;font-size:.75rem;margin-bottom:4px">${f}</div>${ok}<button class="modal-btn danger" style="width:auto;display:inline-block;padding:6px 12px" onclick="resolverSolicitud('${d.id}', false)">${s.tipo === 'sugerencia' ? 'Borrar' : 'Rechazar'}</button></div>`;
+    });
+    document.getElementById('sol-list').innerHTML = h || '<p style="color:#777">No hay solicitudes ni sugerencias.</p>';
+    document.getElementById('modal-sol').style.display = 'flex';
+  } catch (e) { customAlert('Solicitudes', 'No se pudieron cargar: ' + e.message); }
+}
+async function resolverSolicitud(id, aceptar) {
+  try {
+    const ref = db.collection('solicitudes').doc(id);
+    if (aceptar) {
+      const s = (await ref.get()).data();
+      await db.collection('nombres').doc(solId(s.jugador)).set(s.tipo === 'nombre' ? { key: s.jugador, mostrar: s.nuevo } : { key: s.jugador, mote: s.nuevo }, { merge: true });
+    }
+    await ref.delete();
+    abrirSolicitudes();
+  } catch (e) { customAlert('Solicitudes', 'Error: ' + e.message); }
+}
+</script>
 </body>
 </html>
