@@ -1841,7 +1841,7 @@ async function abrirSolicitudes() {
       const s = d.data(), f = new Date(s.fecha).toLocaleDateString('es-ES');
       const txt = s.tipo === 'sugerencia' ? `<b>💬 ${escA(s.autor)}:</b> ${escA(s.texto)}`
         : s.tipo === 'nombre' ? `<b>✏️ ${escA(s.actual)}</b> quiere llamarse <b>${escA(s.nuevo)}</b>`
-        : `<b>🏷️ ${escA(s.actual)}</b> quiere el mote <b>${escA(s.nuevo)}</b>`;
+        : (s.nuevo ? `<b>🏷️ ${escA(s.actual)}</b> quiere el mote <b>${escA(s.nuevo)}</b>` : `<b>🏷️ ${escA(s.actual)}</b> quiere <b>quitar su mote</b>`);
       const ok = s.tipo === 'sugerencia' ? '' : `<button class="modal-btn" style="width:auto;display:inline-block;padding:6px 12px;background:#27ae60" onclick="resolverSolicitud('${d.id}', true)">Aceptar</button> `;
       h += `<div style="border-bottom:1px solid #ddd;padding:8px 0;font-size:.9rem">${txt}<div style="color:#888;font-size:.75rem;margin-bottom:4px">${f}</div>${ok}<button class="modal-btn danger" style="width:auto;display:inline-block;padding:6px 12px" onclick="resolverSolicitud('${d.id}', false)">${s.tipo === 'sugerencia' ? 'Borrar' : 'Rechazar'}</button></div>`;
     });
