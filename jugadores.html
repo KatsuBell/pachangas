@@ -63,6 +63,11 @@ select,.srch input{width:100%;padding:9px 11px;font-size:.92rem;border:1px solid
 #msg{text-align:center;color:#1f5a3c;font-weight:600;margin:8px 0}
 .rad{display:block;margin:0 auto 6px;max-width:230px;width:100%}
 :focus-visible{outline:3px solid #f5b301;outline-offset:2px}
+textarea{width:100%;padding:9px 11px;font:inherit;border:1px solid #cfdcd4;border-radius:10px;resize:vertical;margin-top:6px}
+.bz{display:flex;gap:8px}.bz input{flex:1;min-width:0;padding:9px 11px;font:inherit;border:1px solid #cfdcd4;border-radius:10px}
+.bz button{flex:none;padding:9px 14px;border:0;border-radius:10px;background:#2c3a33;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.mote{font-size:.78rem;opacity:.55;font-style:italic;margin:1px 0 2px}
+button.foto{border:0;font-family:inherit}
 </style>
 </head>
 <body>
@@ -74,6 +79,7 @@ select,.srch input{width:100%;padding:9px 11px;font-size:.92rem;border:1px solid
   </div>
   <div id="msg"></div>
   <div id="view"></div>
+  <div class="card"><h2>📮 Buzón de sugerencias</h2><div class="bz"><input id="bz-n" maxlength="60" placeholder="Tu nombre" aria-label="Tu nombre"><button id="bz-b">Enviar</button></div><textarea id="bz-t" rows="3" maxlength="500" placeholder="Sugerencia, mejora o cambio que te gustaría" aria-label="Sugerencia"></textarea></div>
   <div class="card gl"><h2>Mini guía: cómo se calcula todo</h2>
     <p><b>PJ:</b> partidos jugados. <b>REC:</b> recuperaciones, es decir, balones robados o cortes defensivos que se apuntan durante el partido.</p>
     <p><b>Goles y asistencias:</b> los goles en propia puerta no cuentan como gol del jugador. <b>Precisión de tiro:</b> (goles + tiros a puerta) entre todos los tiros, incluidos los que van fuera.</p>
@@ -103,6 +109,9 @@ const db = firebase.firestore();
 const norm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const docId = k => k.replace(/[^a-z0-9]+/g, '_');
+const NM = {}, ALIAS = {};
+const kk = n => ALIAS[norm(n)] || norm(n);
+const dn = n => (NM[kk(n)] && NM[kk(n)].mostrar) || n;
 const $ = id => document.getElementById(id);
 const fmt = d => { d = new Date(d); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
 const monthKey = d => { d = new Date(d); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
@@ -116,16 +125,16 @@ function build(list) {
   list.forEach(m => {
     const sc = m.score || { white: 0, black: 0 }, rows = [];
     ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => {
-      const k = norm(p.name); if (!k) return;
+      const k = kk(p.name); if (!k) return;
       const g = p.goalsList ? p.goalsList.length : 0, a = p.ast || 0, pt = p.p || 0, d = p.def || 0, fl = p.fl || 0;
-      rows.push({ k, name: p.name.trim(), t, g, a, pt, f: p.f || 0, d, fl, pts: g * 3 + a * 2 + pt * .5 + d * .5 - fl });
+      rows.push({ k, name: (NM[k] && NM[k].mostrar) || p.name.trim(), t, g, a, pt, f: p.f || 0, d, fl, pts: g * 3 + a * 2 + pt * .5 + d * .5 - fl });
     }));
     const top = rows.slice().sort((a, b) => b.pts - a.pts || b.g - a.g)[0];
     const mvpKey = top && top.pts > 0 ? top.k : null, seen = {};
     const lu = { white: rows.filter(r => r.t === 'white').map(r => ({ k: r.k, name: r.name })), black: rows.filter(r => r.t === 'black').map(r => ({ k: r.k, name: r.name })) };
     rows.forEach(r => {
       if (seen[r.k]) return; seen[r.k] = 1;
-      const s = P[r.k] = P[r.k] || { name: r.name, pj: 0, v: 0, e: 0, d: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, mvp: 0, fair: 0, partner: {}, list: [] };
+      const s = P[r.k] = P[r.k] || { name: r.name, mote: (NM[r.k] && NM[r.k].mote) || '', pj: 0, v: 0, e: 0, d: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, mvp: 0, fair: 0, partner: {}, list: [] };
       const mine = sc[r.t], opp = sc[r.t === 'white' ? 'black' : 'white'];
       const res = mine > opp ? 'v' : mine < opp ? 'd' : 'e', isMvp = r.k === mvpKey;
       s.pj++; s[res]++; s.goals += r.g; s.ast += r.a; s.def += r.d; s.pta += r.pt; s.fue += r.f; s.fl += r.fl;
@@ -133,7 +142,7 @@ function build(list) {
       s.list.push({ date: m.date, sc, t: r.t, res, g: r.g, a: r.a, d: r.d, fl: r.fl, mvp: isMvp, lu });
     });
     (m.goalsTimeline || []).forEach(g => {
-      const k = norm(g.player);
+      const k = kk(g.player);
       if (P[k] && g.assist) P[k].partner[g.assist] = (P[k].partner[g.assist] || 0) + 1;
     });
   });
@@ -166,7 +175,7 @@ function radar(vals) {
 function rowsOf(m) {
   const r = [];
   ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => {
-    const k = norm(p.name); if (k) r.push({ k, g: p.goalsList ? p.goalsList.length : 0, pt: p.p || 0, f: p.f || 0, og: p.og || 0 });
+    const k = kk(p.name); if (k) r.push({ k, g: p.goalsList ? p.goalsList.length : 0, pt: p.p || 0, f: p.f || 0, og: p.og || 0 });
   }));
   return r;
 }
@@ -202,7 +211,7 @@ function logros(k) {
   s.list.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(m => { cur = m.res === 'v' ? cur + 1 : 0; best = Math.max(best, cur); });
   if (best >= 3) add('Racha', 'Racha ganadora', '🔥', `${best} victorias seguidas`);
   const pr = Object.keys(s.partner).sort((a, b) => s.partner[b] - s.partner[a])[0];
-  if (pr && s.partner[pr] >= 3) add('Duo', 'Dúo dinámico', '🎯', `${s.partner[pr]} goles asistidos por ${pr}`);
+  if (pr && s.partner[pr] >= 3) add('Duo', 'Dúo dinámico', '🎯', `${s.partner[pr]} goles asistidos por ${dn(pr)}`);
   return Object.values(o);
 }
 
@@ -219,11 +228,11 @@ function ficha() {
   const med = logros(sel).map(x => `<div class="mi">${medal(x.e, MC[x.id])}<div><b>${esc(x.n)}${x.why.length > 1 ? ' ×' + x.why.length : ''}</b><small>${esc(x.why.slice(0, 3).join(' · '))}${x.why.length > 3 ? ' …' : ''}</small></div></div>`).join('') || '<span style="color:var(--mut)">Aún sin medallas. Se conceden al acabar cada mes.</span>';
   const tile = (n, l, cl) => `<div class="t ${cl || ''}"><b>${n}</b><span>${l}</span></div>`;
   return `
-  <div class="card head">${avatar(sel, s.name)}<div><h3>${esc(s.name)}</h3><small>${s.pj} partidos jugados</small><br><label class="foto" for="file">📷 Cambiar foto</label></div></div>
+  <div class="card head">${avatar(sel, s.name)}<div><h3>${esc(s.name)}</h3>${s.mote ? `<div class="mote">“${esc(s.mote)}”</div>` : ''}<small>${s.pj} partidos jugados</small><br><label class="foto" for="file">📷 Foto</label> <button class="foto" onclick="pedir('nombre')">✏️ Nombre</button> <button class="foto" onclick="pedir('mote')">🏷️ Mote</button></div></div>
   <div class="g3">
     <div class="card"><h2>Partidos jugados</h2><div class="rb">${ring(s.v, s.e, s.d)}<div class="vde">${tile(s.v, 'Victorias', 'v')}${tile(s.e, 'Empates', 'e')}${tile(s.d, 'Derrotas', 'd')}</div></div></div>
     <div class="card"><h2>Rendimiento</h2><div class="r2">${tile(s.goals, 'Goles')}${tile(s.ast, 'Asistencias')}${tile(s.def, 'Recuper.')}${tile('⭐ ' + s.mvp, 'MVPs')}${tile(prec.toFixed(0) + '%', 'Precisión')}${tile('😈 ' + s.fl, 'Faltas')}</div></div>
-    <div class="card span"><h2>Perfil de juego</h2>${radar(vals)}<div class="r2"><div class="t"><b style="font-size:.95rem">🤝 ${esc(partner)}</b><span>Mejor socio</span></div><div class="t luck"><span>🍀 Color de la suerte</span>${luck}</div></div></div>
+    <div class="card span"><h2>Perfil de juego</h2>${radar(vals)}<div class="r2"><div class="t"><b style="font-size:.95rem">🤝 ${esc(dn(partner))}</b><span>Mejor socio</span></div><div class="t luck"><span>🍀 Color de la suerte</span>${luck}</div></div></div>
   </div>
   <div class="card"><h2>Medallas</h2><div class="med">${med}</div></div>`;
 }
@@ -271,10 +280,26 @@ function render() {
   PER = build(L); NP = L.length;
   $('view').innerHTML = tab === 'ficha' ? ficha() : tab === 'partidos' ? partidos() : ranking();
 }
+async function enviar(o) {
+  try { await db.collection('solicitudes').add({ ...o, fecha: new Date().toISOString(), estado: 'pendiente' }); $('msg').textContent = '¡Enviado! El administrador lo revisará.'; return true; }
+  catch (e) { $('msg').textContent = 'No se pudo enviar. Inténtalo de nuevo más tarde.'; return false; }
+}
+function pedir(tipo) {
+  const s = ALL[sel]; if (!s) return;
+  const v = (prompt(tipo === 'nombre' ? 'Nuevo nombre (lo revisará el administrador):' : 'Mote que quieres (lo revisará el administrador):') || '').trim();
+  if (!v) return;
+  if (v.length > 40) { $('msg').textContent = 'Máximo 40 caracteres.'; return; }
+  enviar({ tipo, jugador: sel, actual: s.name, nuevo: v });
+}
+$('bz-b').onclick = async () => {
+  const t = $('bz-t').value.trim(); if (!t) return;
+  const n = $('bz-n').value.trim() || (sel && ALL[sel] ? ALL[sel].name : 'Anónimo');
+  if (await enviar({ tipo: 'sugerencia', autor: n.slice(0, 60), texto: t.slice(0, 500) })) $('bz-t').value = '';
+};
 function pick(k) { sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function sugerir() {
   const v = norm($('q').value);
-  const ks = Object.keys(ALL).filter(k => !v || norm(ALL[k].name).includes(v)).sort((a, b) => ALL[a].name.localeCompare(ALL[b].name, 'es')).slice(0, 12);
+  const ks = Object.keys(ALL).filter(k => !v || norm(ALL[k].name).includes(v) || norm(ALL[k].mote || '').includes(v)).sort((a, b) => ALL[a].name.localeCompare(ALL[b].name, 'es')).slice(0, 12);
   $('sug').innerHTML = ks.map(k => `<div class="sg" data-k="${esc(k)}">${avatar(k, ALL[k].name, 1)}<span>${esc(ALL[k].name)}</span></div>`).join('');
   $('sug').style.display = ks.length ? 'block' : 'none';
 }
@@ -302,7 +327,8 @@ $('file').onchange = e => {
 
 async function load() {
   try {
-    const [pa, pe] = await Promise.all([db.collection('partidos').get(), db.collection('perfiles').get()]);
+    const [pa, pe, nm] = await Promise.all([db.collection('partidos').get(), db.collection('perfiles').get(), db.collection('nombres').get().catch(() => null)]);
+    if (nm) nm.forEach(d => { const x = d.data(); if (x.key) { NM[x.key] = x; if (x.mostrar) ALIAS[norm(x.mostrar)] = x.key; } });
     pa.forEach(d => matches.push(d.data()));
     pe.forEach(d => { fotos[d.id] = d.data().foto; });
     ALL = build(matches);
@@ -312,7 +338,8 @@ async function load() {
     $('mes').innerHTML = months.map(m => `<option value="${m}">${mname(m)}${m === cur ? ' · en curso' : ''}</option>`).join('') + '<option value="todo">Todo el historial</option>';
     $('mes').value = mes; $('mes').onchange = () => { mes = $('mes').value; render(); };
     const w = norm(new URLSearchParams(location.search).get('j'));
-    if (w && ALL[w]) { sel = w; tab = 'ficha'; $('q').value = ALL[w].name; }
+    const wk = ALL[w] ? w : Object.keys(ALL).find(k => norm(ALL[k].name) === w);
+    if (wk) { sel = wk; tab = 'ficha'; $('q').value = ALL[wk].name; }
     render();
   } catch (e) { $('msg').textContent = 'No se pudieron cargar los datos. Comprueba la conexión e inténtalo de nuevo.'; }
 }
