@@ -201,17 +201,21 @@
     .sep{margin:0 2px}.global-scoreboard.swapped .score-white{order:-2}.global-scoreboard.swapped .sep{order:-1}.poss-bar-container.swapped #bar-white{order:-1}
 @keyframes flashbg{0%,100%{background:transparent}50%{background:rgba(231,76,60,.55)}}
 body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:2000;animation:flashbg .6s 5}
-.sol-side{background:#fff8e6;border:1px solid #f0d58a;border-radius:8px;padding:10px;margin-bottom:12px;font-size:.85rem}
+.sol-side{background:#f1f5f8;border:1px solid #cfdbe4;border-radius:8px;padding:10px;margin-bottom:12px;font-size:.85rem}
 @media(min-width:1280px){.sol-side{position:fixed;right:16px;top:60px;width:300px;max-height:80vh;overflow:auto;box-shadow:0 2px 8px rgba(0,0,0,.1)}}
 #report-screen > *:not(#report-new):not(.btn-action-group){display:none}
 .inf-ed{background:#fff8e1;border:1px solid #f1deaa;border-radius:8px;padding:10px;margin-top:12px}.inf-ed textarea{width:100%;margin:6px 0;padding:8px;font:inherit;border:1px solid #ccc;border-radius:6px}.inf-ed button{background:#2f4558;color:#fff;border:0;border-radius:6px;padding:8px 12px;font-weight:bold;cursor:pointer;margin-right:6px}
-#history-screen .report-header{background:#1f2d3d;border-bottom:4px solid #f4c20d}
-#history-screen .report-section-title{background:#f4c20d;color:#2b2200;border-radius:8px 8px 0 0;letter-spacing:.5px}
-#history-screen .awards-box{background:#fffdf3;border:1px solid #f1d675}
-#history-screen .award-card{background:#fff;border:1px solid #f1d675;border-left:5px solid #f4c20d;border-radius:8px}
-#history-screen .award-title{color:#8a6a00;font-weight:800}
-#history-screen .report-table th{background:#fff4c2;color:#5a4500}
-#history-screen .history-item{border-left:5px solid #f4c20d}
+#history-screen .report-header{background:#1f2d3d;border-bottom:4px solid #7d95a8}
+#history-screen .report-section-title{background:#7d95a8;color:#ffffff;border-radius:8px 8px 0 0;letter-spacing:.5px}
+#history-screen .awards-box{background:#f7fafc;border:1px solid #cfdbe4}
+#history-screen .award-card{background:#fff;border:1px solid #cfdbe4;border-left:5px solid #7d95a8;border-radius:8px}
+#history-screen .award-title{color:#3f5a70;font-weight:800}
+#history-screen .report-table th{background:#e8eef3;color:#2f4558}
+#history-screen .history-item{border-left:5px solid #7d95a8}
+#print-area{display:none}
+@media print{body.printing-informe>*:not(#print-area){display:none!important}body.printing-informe #print-area{display:block!important}}
+@media(max-width:640px){#history-screen,#report-screen{padding:.7rem}.report-table th,.report-table td{padding:4px 3px;font-size:.68rem}.report-table .clickable-player{font-size:.68rem}}
+.sol-i{border-bottom:1px solid #dbe5ec;padding:7px 0}.sol-d{color:#888;font-size:.72rem;margin-bottom:4px}.sol-side h5{margin:10px 0 4px;color:#3f5a70}
 </style>
 </head>
 <body>
@@ -1848,17 +1852,21 @@ async function abrirSolicitudes(force) {
     if (!user && !force) { el.innerHTML = '<button class="modal-btn" style="width:auto;padding:6px 12px" onclick="abrirSolicitudes(true)">Iniciar sesión para verlas</button>'; return; }
     if (!(await ensureLogin())) return;
     const snap = await db.collection('solicitudes').orderBy('fecha', 'desc').get();
-    let h = '';
-    snap.forEach(d => {
-      const s = d.data(), f = new Date(s.fecha).toLocaleDateString('es-ES');
-      const txt = s.tipo === 'sugerencia' ? `<b>💬 ${escA(s.autor)}:</b> ${escA(s.texto)}`
-        : s.tipo === 'nombre' ? `<b>✏️ ${escA(s.actual)}</b> quiere llamarse <b>${escA(s.nuevo)}</b>`
-        : (s.nuevo ? `<b>🏷️ ${escA(s.actual)}</b> quiere el mote <b>${escA(s.nuevo)}</b>` : `<b>🏷️ ${escA(s.actual)}</b> quiere <b>quitar su mote</b>`);
-      const ok = s.tipo === 'sugerencia' ? '' : `<button class="modal-btn" style="width:auto;display:inline-block;padding:5px 10px;background:#27ae60" onclick="resolverSolicitud('${d.id}', true)">Aceptar</button> `;
-      h += `<div style="border-bottom:1px solid #eadfb8;padding:7px 0">${txt}<div style="color:#888;font-size:.72rem;margin-bottom:4px">${f}</div>${ok}<button class="modal-btn danger" style="width:auto;display:inline-block;padding:5px 10px" onclick="resolverSolicitud('${d.id}', false)">${s.tipo === 'sugerencia' ? 'Borrar' : 'Rechazar'}</button></div>`;
-    });
-    el.innerHTML = h || '<p style="color:#777;margin:0">Nada pendiente 🎉</p>';
+    const nm = [], sg = { pendiente: [], aprobada: [], hecha: [] };
+    snap.forEach(d => { const s = { id: d.id, ...d.data() }; if (s.tipo === 'sugerencia') (sg[s.estado] || sg.pendiente).push(s); else nm.push(s); });
+    const btn = (t, c, fn) => `<button class="modal-btn" style="width:auto;display:inline-block;padding:4px 9px;background:${c};font-size:.78rem" onclick="${fn}">${t}</button> `;
+    const fx = s => new Date(s.fecha).toLocaleDateString('es-ES'), none = '<p style="color:#777;margin:0">Nada por aquí</p>';
+    const nmH = nm.map(s => `<div class="sol-i">${s.tipo === 'nombre' ? `<b>✏️ ${escA(s.actual)}</b> quiere llamarse <b>${escA(s.nuevo)}</b>` : (s.nuevo ? `<b>🏷️ ${escA(s.actual)}</b> quiere el mote <b>${escA(s.nuevo)}</b>` : `<b>🏷️ ${escA(s.actual)}</b> quiere <b>quitar su mote</b>`)}<div class="sol-d">${fx(s)}</div>${btn('Aceptar', '#27ae60', `resolverSolicitud('${s.id}', true)`)}${btn('Rechazar', '#c0392b', `resolverSolicitud('${s.id}', false)`)}</div>`).join('');
+    const sgH = (arr, acts) => arr.map(s => `<div class="sol-i"><b>💬 ${escA(s.autor)}:</b> ${escA(s.texto)}<div class="sol-d">${fx(s)}</div>${acts(s)}</div>`).join('');
+    el.innerHTML = `<h5>✏️ Nombres y motes</h5>${nmH || none}
+      <h5>💬 Sugerencias nuevas</h5>${sgH(sg.pendiente, s => btn('Aceptar', '#27ae60', `estadoSug('${s.id}','aprobada')`) + btn('Rechazar', '#c0392b', `estadoSug('${s.id}','borrar')`)) || none}
+      <h5>🛠️ Por hacer</h5>${sgH(sg.aprobada, s => btn('Hecha', '#2980b9', `estadoSug('${s.id}','hecha')`) + btn('Descartar', '#c0392b', `estadoSug('${s.id}','borrar')`)) || none}
+      <h5>✅ Hechas (${sg.hecha.length})</h5>${sgH(sg.hecha, s => btn('Borrar', '#7f8c8d', `estadoSug('${s.id}','borrar')`))}`;
   } catch (e) { el.innerHTML = 'No se pudieron cargar: ' + escA(e.message); }
+}
+async function estadoSug(id, e) {
+  try { const r = db.collection('solicitudes').doc(id); if (e === 'borrar') await r.delete(); else await r.update({ estado: e }); abrirSolicitudes(); }
+  catch (err) { customAlert('Solicitudes', 'Error: ' + err.message); }
 }
 async function resolverSolicitud(id, aceptar) {
   try {
@@ -1915,6 +1923,25 @@ viewHistoryMatchReport = function (id) {
   document.getElementById('nav-match-btn').classList.remove('active'); document.getElementById('nav-history-btn').classList.remove('active');
   renderInformeAdmin();
 };
+
+// ===== Ficha de jugador (misma que la web de jugadores) e impresión del informe =====
+openPlayerProfile = function (playerKey) {
+  triggerVibrate(30);
+  document.querySelector('#modal-player-profile .modal-content').style.maxWidth = '720px';
+  document.getElementById('player-profile-content').innerHTML = `<iframe id="ficha-frame" src="jugadores.html?j=${encodeURIComponent(playerKey)}" style="width:100%;height:68vh;border:0;border-radius:8px"></iframe>`;
+  document.getElementById('modal-player-profile').style.display = 'flex';
+};
+triggerPrint = function () {
+  const rep = document.getElementById('report-screen'), inf = document.querySelector('#report-new .inf');
+  if (rep && rep.style.display === 'block' && inf) {
+    let pa = document.getElementById('print-area');
+    if (!pa) { pa = document.createElement('div'); pa.id = 'print-area'; document.body.appendChild(pa); }
+    pa.innerHTML = inf.outerHTML;
+    document.body.classList.add('printing-informe');
+    setTimeout(() => window.print(), 100);
+  } else { const fr = document.getElementById('ficha-frame'); if (fr && fr.contentWindow) fr.contentWindow.print(); }
+};
+window.addEventListener('afterprint', () => document.body.classList.remove('printing-informe'));
 </script>
 </body>
 </html>
