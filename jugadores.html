@@ -29,12 +29,12 @@ select,.srch input{width:100%;padding:9px 11px;font-size:.92rem;border:1px solid
 .head h3{margin:0;font-size:1.35rem;line-height:1.05;font-weight:900;text-transform:uppercase;word-break:break-word}
 .head small{color:var(--mut);font-weight:600}
 .foto{display:inline-block;margin-top:4px;font-size:.72rem;font-weight:700;color:#2c3a33;background:#e9f1ec;padding:3px 9px;border-radius:99px;cursor:pointer}
-.g3{display:grid;grid-template-columns:1fr 1fr;gap:9px}.g3 .card{margin:0}.span{grid-column:1/-1}
-@media(min-width:720px){.g3{grid-template-columns:1fr 1.1fr 1.1fr}.span{grid-column:auto}}
+.g3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px}.card{min-width:0}.g3 .card{margin:0}.span{grid-column:1/-1}
+@media(min-width:720px){.g3{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.1fr)}.span{grid-column:auto}}
 .g3,.card.head{margin-bottom:9px}
-.r2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.r2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
 .rb{display:flex;flex-direction:column;align-items:center;gap:7px}
-.vde{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%}
+.vde{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%}
 .t{background:#fff;border:1px solid #e3e9e5;border-radius:10px;padding:6px 4px;text-align:center}
 .t b{display:block;font-size:1.2rem;font-weight:900;line-height:1.1}
 .t span{font-size:.6rem;font-weight:700;color:var(--mut);text-transform:uppercase}
@@ -75,6 +75,9 @@ button.foto{border:0;font-family:inherit}
 .rep-x{display:block;margin:0 0 6px auto;padding:6px 14px;border:0;border-radius:8px;background:#2c3a33;color:#fff;font:inherit;font-weight:700;cursor:pointer}
 .ordb{flex:none;padding:9px 12px;border:1px solid #cfdcd4;border-radius:10px;background:#fff;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}.top select{max-width:none}
 .med{grid-auto-rows:1fr}.mi{min-height:58px}.mi svg{flex:none}
+.t{overflow:hidden}.t span{overflow-wrap:anywhere}
+@media(max-width:430px){.t b{font-size:1.05rem}.t span{font-size:.55rem}.head h3{font-size:1.15rem}.luck b{font-size:.85rem}.luck span{font-size:.6rem}}
+@media print{.top,.tabs,#msg,.srch,button.foto,label.foto,.ordb,.rep-x,h1,.sub{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -378,6 +381,8 @@ async function load() {
     const wk = ALL[w] ? w : Object.keys(ALL).find(k => norm(ALL[k].name) === w);
     if (wk) { sel = wk; tab = 'ficha'; $('q').value = ALL[wk].name; }
     render();
+    const pp = new URLSearchParams(location.search).get('p'); if (pp && MBY[pp]) abrirInforme(pp);
+    if (new URLSearchParams(location.search).get('print')) setTimeout(() => window.print(), 700);
   } catch (e) { $('msg').textContent = 'No se pudieron cargar los datos. Comprueba la conexión e inténtalo de nuevo.'; }
 }
 load();
