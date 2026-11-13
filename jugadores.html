@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest-jugadores.json"><link rel="apple-touch-icon" href="icon-j-180.png"><meta name="theme-color" content="#1f5a3c">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estadísticas de las pachangas</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -96,6 +97,8 @@ button.foto{border:0;font-family:inherit}
     <p><b>🕸️ Perfil de juego</b> · Ofensiva (goles por partido), Visión (asistencias), Defensa (REC), Puntería (precisión) y Constancia (partidos jugados del total). Cada eje va de 0 a 100</p>
     <p><b>🍀 Extras</b> · Mejor socio: quien más goles tuyos asiste · Color de la suerte: el equipo con el que más ganas</p>
     <p><b>📅 Partidos</b> · Toca uno para ver su informe · 🔥 Partidazo: el partido con más goles del periodo</p>
+    <p><b>🏆 Liga</b> · 3 puntos por victoria y 1 por empate, según el periodo elegido</p>
+    <p><b>⚔️ Duelo</b> · Elige a otro jugador en tu ficha para ver cuánto ganáis juntos, quién gana cuando os enfrentáis y vuestras asistencias</p>
     <p><b>🏅 Ránking</b> · Sigue el periodo elegido arriba · Los rankings de perfil y el % de victorias piden 3 partidos o más</p>
     <p><b>🎖️ Medallas</b> · Cada una explica qué la da y cuándo la lograste · Las mensuales se dan al acabar el mes y los empates la comparten</p>
     <p><b>📷 Foto, nombre y mote</b> · Puedes quitar tu foto cuando quieras · Nombre y mote los aprueba el administrador</p></div>
@@ -126,11 +129,11 @@ const $ = id => document.getElementById(id);
 const fmt = d => { d = new Date(d); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
 const monthKey = d => { d = new Date(d); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
 const sh = p => p.goals + p.pta + p.fue, PCT = ['pct', 'pun', 'con'];
-const MET = { goles: ['Goles', p => p.goals], asist: ['Asist.', p => p.ast], rec: ['REC', p => p.def], mvp: ['MVPs', p => p.mvp], vic: ['Victorias', p => p.v], pct: ['% victorias', p => p.pj >= 3 ? Math.round(p.v / p.pj * 100) : null], pj: ['Partidos', p => p.pj], falt: ['Faltas 😈', p => p.fl],
+const MET = { liga: ['🏆 Liga (puntos)', p => p.v * 3 + p.e], goles: ['Goles', p => p.goals], asist: ['Asist.', p => p.ast], rec: ['REC', p => p.def], mvp: ['MVPs', p => p.mvp], vic: ['Victorias', p => p.v], pct: ['% victorias', p => p.pj >= 3 ? Math.round(p.v / p.pj * 100) : null], pj: ['Partidos', p => p.pj], falt: ['Faltas 😈', p => p.fl],
   ofe: ['⚔️ Ofensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.goals / p.pj / 2.5 * 100)) : null], vis: ['🧠 Visión', p => p.pj >= 3 ? Math.round(Math.min(100, p.ast / p.pj / 2 * 100)) : null],
   def: ['🛡️ Defensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.def / p.pj / 4 * 100)) : null], pun: ['🎯 Puntería', p => p.pj >= 3 && sh(p) ? Math.round((p.goals + p.pta) / sh(p) * 100) : null], con: ['📅 Constancia', p => Math.round(p.pj / Math.max(1, NP) * 100)] };
 
-let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'goles', mes = 'todo', ord = 1, PER = {}, NP = 0;
+let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'liga', mes = 'todo', ord = 1, PER = {}, NP = 0;
 
 // Agrega estadísticas de una lista de partidos
 function build(list) {
@@ -249,7 +252,8 @@ function ficha() {
     <div class="card"><h2>Rendimiento</h2><div class="r2">${tile(s.goals, 'Goles')}${tile(s.ast, 'Asistencias')}${tile(s.def, 'Recuper.')}${tile('⭐ ' + s.mvp, 'MVPs')}${tile(prec.toFixed(0) + '%', 'Precisión')}${tile('😈 ' + s.fl, 'Faltas')}</div></div>
     <div class="card span"><h2>Perfil de juego</h2>${radar(vals)}<div class="r2"><div class="t"><b style="font-size:.95rem">🤝 ${esc(dn(partner))}</b><span>Mejor socio</span></div><div class="t luck"><span>🍀 Color de la suerte</span>${luck}</div></div></div>
   </div>
-  <div class="card"><h2>Medallas</h2><div class="med">${med}</div></div>`;
+  <div class="card"><h2>Medallas</h2><div class="med">${med}</div></div>
+  <div class="card"><h2>⚔️ Duelo</h2><select onchange="verDuelo(this.value)" aria-label="Rival o compañero"><option value="">Elige a otro jugador…</option>${Object.keys(ALL).filter(k => k !== sel).sort((a, b) => ALL[a].name.localeCompare(ALL[b].name, 'es')).map(k => `<option value="${k}">${esc(ALL[k].name)}</option>`).join('')}</select><div id="duelo-res"></div></div>`;
 }
 
 function pitch(m) {
@@ -282,9 +286,9 @@ function ranking() {
   }).join('');
   const pos = sel ? desc.indexOf(sel) + 1 : 0;
   const opt = k => `<option value="${k}" ${k === rk ? 'selected' : ''}>${MET[k][0]}</option>`;
-  const rows = arr.map((k, i) => `<div class="li${k === sel ? ' me' : ''}" onclick="pick('${k}')"><div class="pos">${desc.indexOf(k) + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${P[k].pj} partidos</small></div><div class="val">${f(P[k])}${PCT.includes(rk) ? '%' : ''}</div></div>`).join('');
+  const rows = arr.map((k, i) => `<div class="li${k === sel ? ' me' : ''}" onclick="pick('${k}')"><div class="pos">${desc.indexOf(k) + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${rk === 'liga' ? `${P[k].v}V · ${P[k].e}E · ${P[k].d}D` : P[k].pj + ' partidos'}</small></div><div class="val">${f(P[k])}${PCT.includes(rk) ? '%' : ''}</div></div>`).join('');
   return `<div class="card"><h2>🏅 Cuadro de honor${mes === 'todo' ? '' : ' del periodo'}</h2><div class="honor">${honor || 'Aún no hay datos en este periodo.'}</div></div>
-    <div class="top" style="margin-bottom:8px"><select aria-label="Ordenar por" onchange="rk=this.value;render()"><optgroup label="Estadísticas">${['goles', 'asist', 'rec', 'mvp', 'vic', 'pct', 'pj', 'falt'].map(opt).join('')}</optgroup><optgroup label="Perfil de juego">${['ofe', 'vis', 'def', 'pun', 'con'].map(opt).join('')}</optgroup></select><button class="ordb" onclick="ord=-ord;render()">${ord > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
+    <div class="top" style="margin-bottom:8px"><select aria-label="Ordenar por" onchange="rk=this.value;render()"><optgroup label="Estadísticas">${['liga', 'goles', 'asist', 'rec', 'mvp', 'vic', 'pct', 'pj', 'falt'].map(opt).join('')}</optgroup><optgroup label="Perfil de juego">${['ofe', 'vis', 'def', 'pun', 'con'].map(opt).join('')}</optgroup></select><button class="ordb" onclick="ord=-ord;render()">${ord > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
     ${pos ? `<div class="note">Tu puesto en ${MET[rk][0]}: ${pos}º de ${arr.length}</div>` : ''}
     <div class="card">${rows || 'Sin partidos en este periodo.'}</div>
     <div class="card"><h2>📅 Partidos${mes === 'todo' ? '' : ' del periodo'}</h2>${galeria()}</div>`;
@@ -335,6 +339,19 @@ function galeria() {
   return Object.keys(por).sort().reverse().map(mk => `<div class="gm">${mname(mk)}</div><div class="pg">${por[mk].map(card).join('')}</div>`).join('');
 }
 function inicio() { sel = ''; $('q').value = ''; $('sug').style.display = 'none'; tab = 'ranking'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function verDuelo(b) {
+  const el = $('duelo-res'); if (!b) { el.innerHTML = ''; return; }
+  const a = sel, r = { j: 0, vj: 0, c: 0, vA: 0, vB: 0, e: 0, gA: 0, gB: 0, aAB: 0, aBA: 0 };
+  matches.forEach(m => {
+    const find = k => { for (const t of ['white', 'black']) { const p = ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).find(q => kk(q.name) === k); if (p) return { t, g: p.goalsList ? p.goalsList.length : 0 }; } return null; };
+    const x = find(a), y = find(b); if (!x || !y) return;
+    const w = m.score.white > m.score.black ? 'white' : m.score.black > m.score.white ? 'black' : null;
+    if (x.t === y.t) { r.j++; if (w === x.t) r.vj++; } else { r.c++; r.gA += x.g; r.gB += y.g; if (!w) r.e++; else if (w === x.t) r.vA++; else r.vB++; }
+    (m.goalsTimeline || []).forEach(g => { if (g.assist) { const sc = kk(g.player), as = kk(g.assist); if (as === a && sc === b) r.aAB++; if (as === b && sc === a) r.aBA++; } });
+  });
+  const A = ALL[a].name, B = ALL[b].name, t = (n, l) => `<div class="t"><b>${n}</b><span>${l}</span></div>`;
+  el.innerHTML = `<div class="r2" style="margin-top:8px">${t(r.j ? `${r.vj} de ${r.j}` : '-', 'Victorias jugando juntos')}${t(r.c ? `${r.vA}-${r.e}-${r.vB}` : '-', `${esc(A)} · empates · ${esc(B)}`)}${t(r.c ? `${r.gA}-${r.gB}` : '-', 'Goles frente a frente')}${t(`${r.aAB}-${r.aBA}`, 'Asistencias entre vosotros')}</div><small style="color:var(--mut)">${r.j} partidos juntos y ${r.c} en contra, en todo el historial.</small>`;
+}
 function pick(k) { sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function sugerir() {
   const v = norm($('q').value);
@@ -386,6 +403,7 @@ async function load() {
   } catch (e) { $('msg').textContent = 'No se pudieron cargar los datos. Comprueba la conexión e inténtalo de nuevo.'; }
 }
 load();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
