@@ -1135,7 +1135,7 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
                 if(isRunning) toggleMainTimer();
                 generateReport();
                 saveMatchToPermanentHistory();
-                renderInformeAdmin(); cloudPush(true);
+                repFrom = 'match'; renderInformeAdmin(); cloudPush(true);
                 
                 isMatchActive = false;
                 localStorage.removeItem('futsal_active_session');
@@ -1897,12 +1897,12 @@ window.addEventListener('load', () => cloudPull(true));
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !isMatchActive) cloudPull(true); });
 
 // ===== Informe de partido (estética nueva) y comentarios VAR =====
-let curMatchId = null;
+let curMatchId = null, repFrom = 'history', curFicha = '';
 const getRecord = () => JSON.parse(localStorage.getItem('futsal_match_history') || '[]').find(m => m.id === curMatchId);
 function renderInformeAdmin() {
   const m = getRecord(); if (!m) return;
   const txt = Object.keys(m.varNotes || {}).map(k => `[${k}] ${m.varNotes[k]}`).join('\n');
-  document.getElementById('report-new').innerHTML = Informe.html(m) + `<div class="inf-ed no-print"><b>💬 Comentarios VAR</b><div style="font-size:.8rem;color:#6b5200">1) Copia los datos para la IA · 2) pega aquí su respuesta (las 6 líneas con etiquetas) · 3) guarda.</div><button onclick="copiarIA()">📋 Copiar para la IA</button><textarea id="var-txt" rows="7" placeholder="[METRICAS] ...">${escA(txt)}</textarea><button onclick="guardarVar()">💾 Guardar comentarios</button></div>`;
+  document.getElementById('report-new').innerHTML = `<div class="no-print" style="text-align:right;margin-bottom:6px"><button onclick="cerrarInforme()" style="background:#2f4558;color:#fff;border:0;border-radius:6px;padding:6px 14px;font-weight:bold;cursor:pointer">✕ Cerrar</button></div>` + Informe.html(m) + `<div class="inf-ed no-print"><b>💬 Comentarios VAR</b><div style="font-size:.8rem;color:#6b5200">1) Copia los datos para la IA · 2) pega aquí su respuesta (las 6 líneas con etiquetas) · 3) guarda.</div><button onclick="copiarIA()">📋 Copiar para la IA</button><button onclick="copiarEnlace()">🔗 Copiar enlace al informe</button><textarea id="var-txt" rows="7" placeholder="[METRICAS] ...">${escA(txt)}</textarea><button onclick="guardarVar()">💾 Guardar comentarios</button></div>`;
 }
 async function copiarIA() {
   const m = getRecord(); if (!m) return;
@@ -1917,7 +1917,7 @@ function guardarVar() {
   renderInformeAdmin(); cloudPush(true);
 }
 viewHistoryMatchReport = function (id) {
-  curMatchId = id;
+  curMatchId = id; repFrom = 'history';
   ['setup-screen', 'match-screen', 'history-screen'].forEach(x => document.getElementById(x).style.display = 'none');
   document.getElementById('report-screen').style.display = 'block';
   document.getElementById('nav-match-btn').classList.remove('active'); document.getElementById('nav-history-btn').classList.remove('active');
@@ -1928,20 +1928,27 @@ viewHistoryMatchReport = function (id) {
 openPlayerProfile = function (playerKey) {
   triggerVibrate(30);
   document.querySelector('#modal-player-profile .modal-content').style.maxWidth = '720px';
-  document.getElementById('player-profile-content').innerHTML = `<iframe id="ficha-frame" src="jugadores.html?j=${encodeURIComponent(playerKey)}" style="width:100%;height:68vh;border:0;border-radius:8px"></iframe>`;
+  curFicha = playerKey; document.getElementById('player-profile-content').innerHTML = `<iframe id="ficha-frame" src="jugadores.html?j=${encodeURIComponent(playerKey)}" style="width:100%;height:68vh;border:0;border-radius:8px"></iframe>`;
   document.getElementById('modal-player-profile').style.display = 'flex';
 };
 triggerPrint = function () {
   const rep = document.getElementById('report-screen'), inf = document.querySelector('#report-new .inf');
   if (rep && rep.style.display === 'block' && inf) {
-    let pa = document.getElementById('print-area');
-    if (!pa) { pa = document.createElement('div'); pa.id = 'print-area'; document.body.appendChild(pa); }
-    pa.innerHTML = inf.outerHTML;
-    document.body.classList.add('printing-informe');
-    setTimeout(() => window.print(), 100);
-  } else { const fr = document.getElementById('ficha-frame'); if (fr && fr.contentWindow) fr.contentWindow.print(); }
+    const w = window.open('', '_blank');
+    if (!w) { customAlert('Imprimir', 'El navegador ha bloqueado la ventana. Permite las ventanas emergentes para esta página e inténtalo de nuevo.'); return; }
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe del partido</title><style>${Informe.css}</style><style>@page{margin:8mm}body{margin:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.inf{border-radius:0}table,.inf-t,svg{break-inside:avoid}</style></head><body>${inf.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
+    w.document.close();
+  } else if (curFicha) window.open('jugadores.html?j=' + encodeURIComponent(curFicha) + '&print=1', '_blank');
 };
 window.addEventListener('afterprint', () => document.body.classList.remove('printing-informe'));
+
+function cerrarInforme() { switchTab(repFrom === 'history' ? 'history' : 'match'); }
+async function copiarEnlace() {
+  const url = new URL('jugadores.html?p=' + curMatchId, location.href).href;
+  try { await navigator.clipboard.writeText(url); customAlert('Enlace copiado', 'Cualquiera con este enlace verá el informe de este partido.'); } catch (e) { prompt('Copia este enlace:', url); }
+}
+const _pmf = populateMonthFilter;
+populateMonthFilter = function () { const s = document.getElementById('history-month-filter'), prev = s.value; _pmf(); if (prev && [...s.options].some(o => o.value === prev)) s.value = prev; };
 </script>
 </body>
 </html>
