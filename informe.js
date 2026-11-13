@@ -11,7 +11,7 @@
 .inf-t{background:#fff;border:1px solid #e3e9ee;padding:8px 10px}.inf-tr{position:relative;height:42px;background:#eef2f5;border:1px solid #cfd8de;border-radius:4px;margin:4px 0 6px}.inf-tr:after{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #9aa8b3}
 .inf-m{position:absolute;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:#27ae60;color:#fff;font-size:8px;font-weight:800;display:grid;place-items:center;border:2px solid #fff}
 .inf-g{background:#eef2f5;border-radius:8px;padding:9px 12px;margin-top:12px;font-size:.74rem;color:#3b4a56}.inf-g p{margin:3px 0}
-.inf .g1{background:#e3f6e8}.inf .g2{background:#e1effb}.inf .g3{background:#e0f5f1}.inf .g4{background:#fdf3d0}.inf .mvp{display:inline-block;background:#f4c20d;color:#4a3800;font-size:.6rem;font-weight:900;border-radius:4px;padding:1px 4px;margin-left:4px}`;
+.inf .ih1{background:#e3f6e8}.inf .ih2{background:#e1effb}.inf .ih3{background:#e0f5f1}.inf .ih4{background:#fdf3d0}.inf .inf-mvp{display:inline-block;background:#f4c20d;color:#4a3800;font-size:.6rem;font-weight:900;border-radius:4px;padding:1px 4px;margin-left:4px}.inf .inf-mur{background:#cfe0ee;color:#1f3b52}.inf table{table-layout:auto}@media(max-width:600px){.inf{padding:6px}.inf th,.inf td{padding:4px 2px;font-size:.66rem}.inf-s{font-size:.7rem;padding:7px 9px}.inf-mvp{display:block;margin:2px 0 0}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   function model(m) {
@@ -22,7 +22,7 @@
         const gg = p.goalsList ? p.goalsList.length : 0, a = p.ast || 0, q = p.p || 0, f = p.f || 0, r = p.def || 0, x = p.fl || 0, sh = gg + q + f;
         const w = p.palos ? Object.values(p.palos).reduce((s, v) => s + v, 0) : 0;
         g += gg; pt += q; fu += f; de += r; fl += x;
-        return { name: p.name, g: gg, a, sh, q, w, og: p.og || 0, prec: sh ? Math.round((gg + q) / sh * 100) : 0, efe: sh ? Math.round(gg / sh * 100) : 0, pts: gg * 3 + a * 2 + q * .5 + r * .5 - x };
+        return { de: r, name: p.name, g: gg, a, sh, q, w, og: p.og || 0, prec: sh ? Math.round((gg + q) / sh * 100) : 0, efe: sh ? Math.round(gg / sh * 100) : 0, pts: gg * 3 + a * 2 + q * .5 + r * .5 - x };
       });
       const sh = g + pt + fu;
       T[t] = { rows, z, g, pt, sh, de, fl, band: (z.b_tl || 0) + (z.b_tr || 0) + (z.b_bl || 0) + (z.b_br || 0), corn: (z.c_tl || 0) + (z.c_tr || 0) + (z.c_bl || 0) + (z.c_br || 0), prec: sh ? Math.round((g + pt) / sh * 100) : 0, conv: sh ? Math.round(g / sh * 100) : 0 };
@@ -34,12 +34,13 @@
   function heat(z, mx, id) {
     const ids = [['c_tl', 'b_tl', 'b_tr', 'c_tr'], ['c_bl', 'b_bl', 'b_br', 'c_br']];
     let cells = '', nums = '';
+    const col = i => { const a = [226, 236, 244], b = [47, 84, 115]; return 'rgb(' + a.map((x, k) => Math.round(x + (b[k] - x) * i)).join(',') + ')'; };
     ids.forEach((row, r) => row.forEach((k, c) => {
       const v = z[k] || 0, i = mx ? v / mx : 0;
-      if (v) cells += `<rect x="${c * 100 + 10}" y="${r * 100 + 10}" width="80" height="80" rx="30" fill="hsl(${Math.round(120 - 120 * i)} 85% 50%)" opacity="${(.4 + .55 * i).toFixed(2)}"/>`;
-      nums += `<text x="${c * 100 + 50}" y="${r * 100 + 58}" text-anchor="middle" font-size="24" font-weight="900" fill="#fff" stroke="#0007" stroke-width=".7">${v || ''}</text>`;
+      if (v) cells += `<rect x="${c * 100 + 10}" y="${r * 100 + 10}" width="80" height="80" rx="30" fill="${col(i)}" opacity=".9"/>`;
+      nums += `<text x="${c * 100 + 50}" y="${r * 100 + 58}" text-anchor="middle" font-size="24" font-weight="900" fill="${i > .55 ? '#fff' : '#2f4558'}">${v || ''}</text>`;
     }));
-    return `<svg viewBox="0 0 400 200" style="width:100%;display:block;border-radius:8px" role="img" aria-label="Mapa de calor"><defs><filter id="b${id}"><feGaussianBlur stdDeviation="9"/></filter></defs><rect width="400" height="200" fill="#2f7d57"/><g fill="none" stroke="#ffffffcc" stroke-width="2.5"><rect x="3" y="3" width="394" height="194"/><line x1="200" y1="3" x2="200" y2="197"/><circle cx="200" cy="100" r="30"/><path d="M3 55h38v90H3zM397 55h-38v90h38z"/></g><g filter="url(#b${id})">${cells}</g>${nums}</svg>`;
+    return `<svg viewBox="0 0 400 200" style="width:100%;display:block;border-radius:8px" role="img" aria-label="Mapa de calor"><defs><filter id="b${id}"><feGaussianBlur stdDeviation="7"/></filter></defs><rect width="400" height="200" fill="#f1f5f3"/><g fill="none" stroke="#b9c7c0" stroke-width="2"><rect x="3" y="3" width="394" height="194"/><line x1="200" y1="3" x2="200" y2="197"/><circle cx="200" cy="100" r="30"/><path d="M3 55h38v90H3zM397 55h-38v90h38z"/></g><g filter="url(#b${id})">${cells}</g>${nums}</svg>`;
   }
 
   function html(m) {
@@ -57,15 +58,16 @@
     const ind = (t, lab) => {
       const rs = T[t].rows.slice().sort((a, b) => a.name.localeCompare(b.name, 'es')), mx = k => Math.max(0, ...rs.map(r => r[k]));
       const hi = (k, c, r) => r[k] > 0 && r[k] === mx(k) ? ` class="${c}"` : '';
-      return `<div class="inf-s">Rendimiento individual (${lab})</div><table><tr><th>Jugador</th><th>Goles</th><th>Asist.</th><th>Tiros</th><th>Puerta</th><th>Palos</th><th>PP</th><th>Precisión</th><th>Efectividad</th></tr>${rs.map(r => `<tr><td><b>${esc(r.name)}</b>${r.name === mvp ? '<span class="mvp">⭐ MVP</span>' : ''}</td><td${hi('g', 'g1', r)}>${r.g}</td><td${hi('a', 'g2', r)}>${r.a}</td><td>${r.sh}</td><td>${r.q}</td><td>${r.w}</td><td style="color:${r.og ? '#c0392b' : 'inherit'};font-weight:${r.og ? 800 : 400}">${r.og}</td><td${hi('prec', 'g3', r)}>${r.prec}%</td><td${hi('efe', 'g4', r)}>${r.efe}%</td></tr>`).join('')}</table>`;
+      return `<div class="inf-s">Rendimiento individual (${lab})</div><table><tr><th>Jugador</th><th>Goles</th><th>Asist.</th><th>Tiros</th><th>Puerta</th><th>Palos</th><th>PP</th><th>REC</th><th>Prec.</th><th>Efect.</th></tr>${rs.map(r => `<tr><td><b>${esc(r.name)}</b>${r.name === mvp ? '<span class="inf-mvp">⭐ MVP</span>' : ''}${r.name === mur ? '<span class="inf-mvp inf-mur">🛡️ MURALLA</span>' : ''}</td><td${hi('g', 'ih1', r)}>${r.g}</td><td${hi('a', 'ih2', r)}>${r.a}</td><td>${r.sh}</td><td>${r.q}</td><td>${r.w}</td><td style="color:${r.og ? '#c0392b' : 'inherit'};font-weight:${r.og ? 800 : 400}">${r.og}</td><td>${r.de}</td><td${hi('prec', 'ih3', r)}>${r.prec}%</td><td${hi('efe', 'ih4', r)}>${r.efe}%</td></tr>`).join('')}</table>`;
     };
-    const mx = Math.max(1, ...Object.values(W.z), ...Object.values(B.z));
+    const mx = Math.max(1, ...Object.values(W.z), ...Object.values(B.z)), hasHeat = [...Object.values(W.z), ...Object.values(B.z)].some(x => x > 0);
+    const allr = [...W.rows, ...B.rows], mxr = Math.max(0, ...allr.map(r => r.de)), mur = mxr > 0 ? allr.find(r => r.de === mxr).name : null;
     return `<div class="inf"><div class="inf-h"><h1>INFORME GRÁFICO Y ESTADÍSTICO · PARTIDO</h1><small>Fecha: ${f} · Duración: ${mn(m.duration || 0)}</small></div>
 <div class="inf-w">${win} · ${sc.white} - ${sc.black}</div>
 ${t3('Métricas colectivas', r3('Saques de banda', W.band, B.band) + r3('Saques de córner', W.corn, B.corn) + r3('Total balón parado', W.band + W.corn + ' interrup.', B.band + B.corn + ' interrup.') + r3('Resultado final', `<b>${sc.white} goles</b>`, `<b>${sc.black} goles</b>`))}${vn('METRICAS')}
-${t3('Acciones de estrategia y dinámica', r3('Posesión de balón', pct(pw), pct(pb)) + r3('Tiempo efectivo de balón', mn(pw), mn(pb)) + r3('Tiros totales', W.sh, B.sh) + r3('Tiros a puerta (efectivos)', W.g + W.pt, B.g + B.pt) + r3('Precisión de tiro', W.prec + '%', B.prec + '%') + r3('Conversión goleadora', W.conv + '%', B.conv + '%') + r3('Acciones defensivas (REC)', W.de, B.de) + r3('Faltas cometidas', W.fl, B.fl))}${vn('ESTRATEGIA')}
-<div class="inf-s">Mapa de calor: interrupciones por zona</div><div class="inf-hm"><div><b>Equipo Blanco</b>${heat(W.z, mx, 'w')}</div><div><b>Equipo Negro</b>${heat(B.z, mx, 'n')}</div></div><div style="background:#fff;border:1px solid #e3e9ee;border-top:0;padding:4px 10px 8px;font-size:.7rem;color:#6b7a86">Menos<div style="height:7px;border-radius:4px;background:linear-gradient(90deg,hsl(120 85% 50%),hsl(60 85% 50%),hsl(0 85% 50%))"></div><div style="text-align:right">Más interrupciones</div></div>${vn('CALOR')}
-<div class="inf-s">Línea temporal de goles (minuto a minuto)</div>${track('white', 'Equipo Blanco')}${track('black', 'Equipo Negro')}${vn('GOLES')}
+${t3('Acciones de estrategia y dinámica', (pt ? r3('Posesión de balón', pct(pw), pct(pb)) + r3('Tiempo efectivo de balón', mn(pw), mn(pb)) : '') + r3('Tiros totales', W.sh, B.sh) + r3('Tiros a puerta (efectivos)', W.g + W.pt, B.g + B.pt) + r3('Precisión de tiro', W.prec + '%', B.prec + '%') + r3('Conversión goleadora', W.conv + '%', B.conv + '%') + r3('Acciones defensivas (REC)', W.de, B.de) + r3('Faltas cometidas', W.fl, B.fl))}${vn('ESTRATEGIA')}
+${hasHeat ? `<div class="inf-s">Mapa de calor: interrupciones por zona</div><div class="inf-hm"><div><b>Equipo Blanco</b>${heat(W.z, mx, 'w')}</div><div><b>Equipo Negro</b>${heat(B.z, mx, 'n')}</div></div><div style="background:#fff;border:1px solid #e3e9ee;border-top:0;padding:4px 10px 8px;font-size:.7rem;color:#6b7a86">Menos<div style="height:7px;border-radius:4px;background:linear-gradient(90deg,#e2ecf4,#2f5473)"></div><div style="text-align:right">Más interrupciones</div></div>${vn('CALOR')}` : ''}
+${goals.length ? `<div class="inf-s">Línea temporal de goles (minuto a minuto)</div>${track('white', 'Equipo Blanco')}${track('black', 'Equipo Negro')}${vn('GOLES')}` : ''}
 ${ind('white', 'Equipo Blanco')}${vn('BLANCO')}${ind('black', 'Equipo Negro')}${vn('NEGRO')}
 <div class="inf-g"><b>GLOSARIO DEL ANALISTA</b><p><b>Tiros / Puerta:</b> tiros totales y los que van a puerta sin ser gol. <b>Precisión:</b> (goles + puerta) entre tiros. <b>Efectividad:</b> goles entre tiros.</p><p><b>Palos:</b> balones al poste o larguero. <b>PP:</b> goles en propia puerta. <b>Saques de banda y córner:</b> interrupciones por zona del campo.</p></div></div>`;
   }
