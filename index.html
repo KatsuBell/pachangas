@@ -213,9 +213,17 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
 #history-screen .report-table th{background:#e8eef3;color:#2f4558}
 #history-screen .history-item{border-left:5px solid #7d95a8}
 #print-area{display:none}
-@media print{body.printing-informe>*:not(#print-area){display:none!important}body.printing-informe #print-area{display:block!important}}
+@media print{body.printing-informe>*:not(#print-area){display:none!important}body.printing-informe #print-area,body.printing-informe #print-area *{visibility:visible!important}body.printing-informe #print-area{display:block!important;position:absolute;left:0;top:0;width:100%}}
 @media(max-width:640px){#history-screen,#report-screen{padding:.7rem}.report-table th,.report-table td{padding:4px 3px;font-size:.68rem}.report-table .clickable-player{font-size:.68rem}}
 .sol-i{border-bottom:1px solid #dbe5ec;padding:7px 0}.sol-d{color:#888;font-size:.72rem;margin-bottom:4px}.sol-side h5{margin:10px 0 4px;color:#3f5a70}
+/* ===== Registro más limpio y fácil de pulsar ===== */
+.player-card{flex-direction:column;align-items:stretch;gap:5px;padding:7px 10px;margin-bottom:6px;border-radius:10px}
+.player-name{font-size:1.15rem}.player-stats{font-size:.8rem;opacity:.95;margin-top:3px}
+.action-btns{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr 1fr .7fr;gap:5px}
+.action-btns button{width:auto;height:44px;font-size:.72rem;border-radius:9px;font-weight:800;line-height:1.15}
+.btn-d{box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.player-card.flash{animation:cardflash .8s}@keyframes cardflash{0%{box-shadow:0 0 0 4px #f1c40f}100%{box-shadow:0 0 0 0 transparent}}
+#assist-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}#assist-buttons .modal-btn{margin:0;height:54px;font-size:1rem}
 </style>
 </head>
 <body>
@@ -277,6 +285,7 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
             <span class="score-black" id="score-black">0</span><span class="sep">-</span><span class="score-white" id="score-white">0</span>
             <button class="btn-top-action" onclick="toggleSwapSides()">⇆ Invertir Lados</button>
             <button class="btn-top-action" onclick="undoLastAction()">↩ Deshacer</button>
+            <button class="btn-top-action" onclick="abrirGoles()">📝 Goles</button>
         </div>
 
         <div class="header-timers">
@@ -428,10 +437,14 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
         </div>
     </div>
 
+    <!-- Modal Goles -->
+    <div id="modal-goles" class="modal-overlay"><div class="modal-content" style="text-align:left"><h3 style="margin-top:0">📝 Goles del partido</h3><div id="goles-list"></div><button class="modal-btn cancel" style="margin-top:10px" onclick="closeModal('modal-goles')">Cerrar</button></div></div>
+
     <!-- Modal Asistencia -->
     <div id="modal-assist" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modal-assist-title" style="font-size: 1.1rem; margin-top: 0;">¡Gol! ¿Asistencia?</h2>
+            <p style="font-size:.8rem;color:#666;margin:0 0 8px">¿Quién dio el pase de gol? (el último compañero que toca el balón antes del tiro)</p>
             <div id="assist-buttons"></div>
             <button class="modal-btn" style="background:#2ecc71" onclick="resolveGoal(null, false)">Nadie (Gol Individual)</button>
             <button class="modal-btn danger" onclick="resolveGoal(null, true)">Propia Puerta</button>
@@ -927,11 +940,11 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
                             ${subTag}
                         </div>
                         <div class="action-btns">
-                            <button class="btn-g" onclick="initGoal('${team}', ${index})">G</button>
-                            <button class="btn-p" onclick="actionPuerta('${team}', ${index})">P</button>
-                            <button class="btn-f" onclick="initFuera('${team}', ${index})">F</button>
-                            <button class="btn-d" onclick="actionDefensa('${team}', ${index})">D</button>
-                            <button class="btn-fl" onclick="actionFalta('${team}', ${index})">FL</button>
+                            <button class="btn-g" onclick="initGoal('${team}', ${index})">⚽<br>GOL</button>
+                            <button class="btn-p" onclick="actionPuerta('${team}', ${index})">🎯<br>PTA</button>
+                            <button class="btn-f" onclick="initFuera('${team}', ${index})">↗️<br>FUE</button>
+                            <button class="btn-d" onclick="actionDefensa('${team}', ${index})">🛡️<br>REC</button>
+                            <button class="btn-fl" onclick="actionFalta('${team}', ${index})">🟨<br>FL</button>
                             ${p.active ? `<button class="btn-sub" onclick="openSubModal('${team}',${index})">⇄</button>` : ''}
                         </div>
                     </div>
@@ -971,7 +984,7 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
             assistContainer.innerHTML = '';
             matchData[team].players.forEach((p, idx) => {
                 if(idx !== playerIndex && p.active) {
-                    assistContainer.innerHTML += `<button class="modal-btn" onclick="resolveGoal(${idx}, false)">Asistencia de ${p.name}</button>`;
+                    assistContainer.innerHTML += `<button class="modal-btn" onclick="resolveGoal(${idx}, false)">🅰️ ${p.name}</button>`;
                 }
             });
             document.getElementById('modal-assist').style.display = 'flex';
@@ -984,7 +997,7 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
             const oppTeam = team === 'black' ? 'white' : 'black';
             const currentMinute = Math.floor(mainSeconds / 60);
 
-            saveSnapshot('goal', { team, playerIndex: tempAction.playerIndex, assistIndex, isOwnGoal });
+            saveSnapshot('goal', { team, playerIndex: tempAction.playerIndex, assistIndex, isOwnGoal, goalId: isOwnGoal ? null : totalGoalsCount + 1 });
 
             if (isOwnGoal) {
                 player.og++; globalScore[oppTeam]++;
@@ -1935,7 +1948,7 @@ triggerPrint = function () {
   const rep = document.getElementById('report-screen'), inf = document.querySelector('#report-new .inf');
   if (rep && rep.style.display === 'block' && inf) {
     const w = window.open('', '_blank');
-    if (!w) { customAlert('Imprimir', 'El navegador ha bloqueado la ventana. Permite las ventanas emergentes para esta página e inténtalo de nuevo.'); return; }
+    if (!w) { let pa = document.getElementById('print-area'); if (!pa) { pa = document.createElement('div'); pa.id = 'print-area'; document.body.appendChild(pa); } pa.innerHTML = inf.outerHTML; document.body.classList.add('printing-informe'); setTimeout(() => window.print(), 100); return; }
     w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe del partido</title><style>${Informe.css}</style><style>@page{margin:8mm}body{margin:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.inf{border-radius:0}table,.inf-t,svg{break-inside:avoid}</style></head><body>${inf.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`);
     w.document.close();
   } else if (curFicha) window.open('jugadores.html?j=' + encodeURIComponent(curFicha) + '&print=1', '_blank');
@@ -1949,6 +1962,28 @@ async function copiarEnlace() {
 }
 const _pmf = populateMonthFilter;
 populateMonthFilter = function () { const s = document.getElementById('history-month-filter'), prev = s.value; _pmf(); if (prev && [...s.options].some(o => o.value === prev)) s.value = prev; };
+
+// ===== Registro: editar asistencias y avisar dónde se ha pulsado =====
+function abrirGoles() {
+  document.getElementById('goles-list').innerHTML = goalsTimeline.length ? goalsTimeline.map(g => {
+    const opts = '<option value="">Sin asistencia</option>' + matchData[g.team].players.map((p, i) => p.name === g.player ? '' : `<option value="${i}" ${p.name === g.assist ? 'selected' : ''}>${escA(p.name)}</option>`).join('');
+    return `<div style="padding:7px 0;border-bottom:1px solid #ddd"><b>${g.id}º ${g.team === 'white' ? '⚪' : '⚫'} ${escA(g.player)}</b> (${g.time + 1}')<br><select style="width:100%;padding:8px;margin-top:4px" onchange="editarAsistencia(${g.id}, this.value)">${opts}</select></div>`;
+  }).join('') : '<p style="color:#777">Aún no hay goles.</p>';
+  document.getElementById('modal-goles').style.display = 'flex';
+}
+function editarAsistencia(goalId, val) {
+  const g = goalsTimeline.find(x => x.id === goalId); if (!g) return;
+  const pl = matchData[g.team].players, old = g.assist ? pl.find(p => p.name === g.assist) : null;
+  if (old && old.ast > 0) old.ast--;
+  const idx = val === '' ? null : parseInt(val);
+  if (idx !== null) { pl[idx].ast++; g.assist = pl[idx].name; } else g.assist = null;
+  const h = actionHistory.find(a => a.type === 'goal' && a.details.goalId === goalId); if (h) h.details.assistIndex = idx;
+  renderPlayers(g.team); saveActiveSession(); triggerVibrate(30);
+}
+let _lastCard = null;
+document.addEventListener('click', e => { const b = e.target.closest('.action-btns button'); if (!b) return; const m = (b.getAttribute('onclick') || '').match(/'(black|white)',\s*(\d+)/); _lastCard = m ? { team: m[1], idx: +m[2] } : null; }, true);
+const _rp = renderPlayers;
+renderPlayers = function (team) { _rp(team); if (_lastCard && _lastCard.team === team) { const c = document.querySelectorAll(`#players-${team} .player-card`)[_lastCard.idx]; if (c) c.classList.add('flash'); _lastCard = null; } };
 </script>
 </body>
 </html>
