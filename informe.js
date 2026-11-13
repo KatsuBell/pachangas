@@ -99,5 +99,5 @@ Jugadores negro: ${L('black')}.
 Goles por minuto: ${(m.goalsTimeline || []).map(g => `${g.time + 1}' ${g.player} (${g.team === 'white' ? 'B' : 'N'})`).join(', ') || 'sin datos'}.`;
   }
 
-  window.Informe = { html, ia, parse, TAGS };
+  window.Informe = { html, ia, parse, TAGS, css };
 })();
