@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="manifest" href="manifest-admin.json"><link rel="apple-touch-icon" href="icon-a-180.png"><meta name="theme-color" content="#1f2d3d">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -216,12 +217,16 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
 @media print{body.printing-informe>*:not(#print-area){display:none!important}body.printing-informe #print-area,body.printing-informe #print-area *{visibility:visible!important}body.printing-informe #print-area{display:block!important;position:absolute;left:0;top:0;width:100%}}
 @media(max-width:640px){#history-screen,#report-screen{padding:.7rem}.report-table th,.report-table td{padding:4px 3px;font-size:.68rem}.report-table .clickable-player{font-size:.68rem}}
 .sol-i{border-bottom:1px solid #dbe5ec;padding:7px 0}.sol-d{color:#888;font-size:.72rem;margin-bottom:4px}.sol-side h5{margin:10px 0 4px;color:#3f5a70}
-/* ===== Registro más limpio y fácil de pulsar ===== */
-.player-card{flex-direction:column;align-items:stretch;gap:5px;padding:7px 10px;margin-bottom:6px;border-radius:10px}
-.player-name{font-size:1.15rem}.player-stats{font-size:.8rem;opacity:.95;margin-top:3px}
-.action-btns{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr 1fr .7fr;gap:5px}
-.action-btns button{width:auto;height:44px;font-size:.72rem;border-radius:9px;font-weight:800;line-height:1.15}
-.btn-d{box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+/* ===== Registro compacto: los 10 jugadores a la vez ===== */
+.global-scoreboard{padding:3px 12px;font-size:1.6rem}.header-timers{padding:.3rem;gap:1rem}.timer-box{padding:.3rem .8rem}.time-display{font-size:1.5rem}.time-display-small{font-size:1.2rem}.gk-history{height:46px}
+.team-col{padding:.45rem;min-width:0}.possession-btn{padding:6px;margin-bottom:5px;font-size:.9rem}
+.player-card{flex-direction:row;align-items:center;gap:6px;padding:4px 8px;margin-bottom:5px;border-radius:9px}
+.player-info{min-width:0}.player-name{font-size:1rem}.player-stats{font-size:.68rem;margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.action-btns{display:flex;gap:4px;flex:none}
+.action-btns button{width:46px;height:46px;font-size:.58rem;border-radius:8px;font-weight:800;line-height:1.1;padding:0}
+.action-btns .btn-sub{width:32px}.btn-d{box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+.visual-pitch{height:90px}
+@media(max-width:820px){.action-btns button{width:38px;height:42px;font-size:.52rem}.action-btns .btn-sub{width:26px}.player-name{font-size:.9rem}}
 .player-card.flash{animation:cardflash .8s}@keyframes cardflash{0%{box-shadow:0 0 0 4px #f1c40f}100%{box-shadow:0 0 0 0 transparent}}
 #assist-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}#assist-buttons .modal-btn{margin:0;height:54px;font-size:1rem}
 </style>
@@ -1984,6 +1989,7 @@ let _lastCard = null;
 document.addEventListener('click', e => { const b = e.target.closest('.action-btns button'); if (!b) return; const m = (b.getAttribute('onclick') || '').match(/'(black|white)',\s*(\d+)/); _lastCard = m ? { team: m[1], idx: +m[2] } : null; }, true);
 const _rp = renderPlayers;
 renderPlayers = function (team) { _rp(team); if (_lastCard && _lastCard.team === team) { const c = document.querySelectorAll(`#players-${team} .player-card`)[_lastCard.idx]; if (c) c.classList.add('flash'); _lastCard = null; } };
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
