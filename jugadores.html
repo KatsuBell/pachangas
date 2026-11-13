@@ -73,11 +73,13 @@ button.foto{border:0;font-family:inherit}
 .gm{font-size:.78rem;font-weight:900;text-transform:uppercase;color:#2c3a33;margin:10px 0 6px}
 .rep-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;overflow:auto;padding:10px}.rep-box{max-width:820px;margin:0 auto;background:#fff;border-radius:12px;padding:8px}
 .rep-x{display:block;margin:0 0 6px auto;padding:6px 14px;border:0;border-radius:8px;background:#2c3a33;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.ordb{flex:none;padding:9px 12px;border:1px solid #cfdcd4;border-radius:10px;background:#fff;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}.top select{max-width:none}
+.med{grid-auto-rows:1fr}.mi{min-height:58px}.mi svg{flex:none}
 </style>
 </head>
 <body>
 <main>
-  <h1>⚽ Estadísticas ⚽</h1><p class="sub">Aquí se acaban las excusas</p>
+  <h1 onclick="inicio()" style="cursor:pointer">⚽ Estadísticas ⚽</h1><p class="sub">Aquí se acaban las excusas</p>
   <div class="top"><div class="srch"><input id="q" type="search" placeholder="Escribe tu nombre…" autocomplete="off" aria-label="Buscar jugador"><div id="sug"></div></div><select id="mes" aria-label="Periodo"></select></div>
   <div class="tabs" id="tabs">
     <button data-t="ficha">Ficha</button><button data-t="partidos">Partidos</button><button data-t="ranking">Ránking</button>
@@ -91,7 +93,7 @@ button.foto{border:0;font-family:inherit}
     <p><b>🕸️ Perfil de juego</b> · Ofensiva (goles por partido), Visión (asistencias), Defensa (REC), Puntería (precisión) y Constancia (partidos jugados del total). Cada eje va de 0 a 100</p>
     <p><b>🍀 Extras</b> · Mejor socio: quien más goles tuyos asiste · Color de la suerte: el equipo con el que más ganas</p>
     <p><b>📅 Partidos</b> · Toca uno para ver su informe · 🔥 Partidazo: el partido con más goles del periodo</p>
-    <p><b>🏅 Ránking</b> · Sigue el periodo elegido arriba · Los rankings de perfil y el % de victorias piden 3 partidos o más · Las faltas son de broma</p>
+    <p><b>🏅 Ránking</b> · Sigue el periodo elegido arriba · Los rankings de perfil y el % de victorias piden 3 partidos o más</p>
     <p><b>🎖️ Medallas</b> · Cada una explica qué la da y cuándo la lograste · Las mensuales se dan al acabar el mes y los empates la comparten</p>
     <p><b>📷 Foto, nombre y mote</b> · Puedes quitar tu foto cuando quieras · Nombre y mote los aprueba el administrador</p></div>
   <input type="file" id="file" accept="image/*" hidden>
@@ -125,7 +127,7 @@ const MET = { goles: ['Goles', p => p.goals], asist: ['Asist.', p => p.ast], rec
   ofe: ['⚔️ Ofensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.goals / p.pj / 2.5 * 100)) : null], vis: ['🧠 Visión', p => p.pj >= 3 ? Math.round(Math.min(100, p.ast / p.pj / 2 * 100)) : null],
   def: ['🛡️ Defensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.def / p.pj / 4 * 100)) : null], pun: ['🎯 Puntería', p => p.pj >= 3 && sh(p) ? Math.round((p.goals + p.pta) / sh(p) * 100) : null], con: ['📅 Constancia', p => Math.round(p.pj / Math.max(1, NP) * 100)] };
 
-let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'goles', mes = 'todo', dir = 1, PER = {}, NP = 0;
+let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'goles', mes = 'todo', ord = 1, PER = {}, NP = 0;
 
 // Agrega estadísticas de una lista de partidos
 function build(list) {
@@ -188,6 +190,7 @@ function rowsOf(m) {
   return r;
 }
 const mname = mk => { const [y, m] = mk.split('-'); return new Date(y, m - 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }); };
+const mshort = mk => { const [y, m] = mk.split('-'); return new Date(y, m - 1).toLocaleString('es-ES', { month: 'short', year: 'numeric' }); };
 const MC = { 'Bota de Oro': '#e0a100', 'Balón de Oro': '#e0a100', 'El Mago': '#8e5bd9', 'La Muralla': '#3f7fbf', 'Más faltoso': '#d9632b', 'El Francotirador': '#d94a4a', 'Gatillo Fácil': '#e8832a', 'Fuego Amigo': '#2f9e5b', 'Fiel': '#1f9d9d', 'Hat-trick': '#c9a000', 'Racha': '#d9482b', 'Duo': '#d14a9a' };
 const D = { 'Bota de Oro': 'Máximo goleador del mes', 'Balón de Oro': 'Más MVPs del mes', 'El Mago': 'Máximo asistente del mes', 'La Muralla': 'Más recuperaciones del mes', 'Más faltoso': 'Más faltas del mes (de broma)', 'El Francotirador': 'Mejor efectividad en un partido (5 tiros o más)', 'Gatillo Fácil': 'Más tiros en un partido', 'Fuego Amigo': 'Más goles en propia del mes', 'Fiel': 'Jugó todos los partidos del mes', 'Hat-trick': '3 goles o más en un partido', 'Racha': '3 victorias seguidas o más', 'Duo': '3 goles o más con el mismo asistente' };
 const medal = (e, c) => `<svg width="34" height="44" viewBox="0 0 38 48" aria-hidden="true"><path d="M9 0h8l4 16h-8z" fill="${c}"/><path d="M29 0h-8l-4 16h8z" fill="${c}" opacity=".7"/><circle cx="19" cy="31" r="15" fill="${c}"/><circle cx="19" cy="31" r="12" fill="#fff" fill-opacity=".92" stroke="${c}" stroke-width="2"/><text x="19" y="37" text-anchor="middle" font-size="15">${e}</text></svg>`;
@@ -198,11 +201,11 @@ function premiosMes(list) {
   const top = (n, e, M, u) => { let mx = 0, ks = []; for (const k in M) { if (M[k] > mx) { mx = M[k]; ks = [k]; } else if (M[k] === mx && mx > 0) ks.push(k); } if (ks.length) out.push({ n, e, keys: ks, M, u }); };
   const of = f => Object.fromEntries(Object.keys(P).map(k => [k, f(P[k])]));
   top('Bota de Oro', '⚽', of(p => p.goals), v => `${v} goles`); top('Balón de Oro', '🥇', of(p => p.mvp), v => `${v} MVPs`);
-  top('El Mago', '🎩', of(p => p.ast), v => `${v} asistencias`); top('La Muralla', '🛡️', of(p => p.def), v => `${v} recuperaciones`);
+  top('El Mago', '🎩', of(p => p.ast), v => `${v} asist.`); top('La Muralla', '🛡️', of(p => p.def), v => `${v} REC`);
   top('Más faltoso', '😈', of(p => p.fl), v => `${v} faltas`);
   const E = {}, T = {}, O = {};
   list.forEach(m => rowsOf(m).forEach(r => { const sh = r.g + r.pt + r.f; E[r.k] = Math.max(E[r.k] || 0, sh >= 5 ? r.g / sh : 0); T[r.k] = Math.max(T[r.k] || 0, sh); O[r.k] = (O[r.k] || 0) + r.og; }));
-  top('El Francotirador', '🎯', E, v => `${Math.round(v * 100)} % de efectividad en un partido`); top('Gatillo Fácil', '🔫', T, v => `${v} tiros en un partido`); top('Fuego Amigo', '🤡', O, v => `${v} en propia`);
+  top('El Francotirador', '🎯', E, v => `${Math.round(v * 100)} %`); top('Gatillo Fácil', '🔫', T, v => `${v} tiros`); top('Fuego Amigo', '🤡', O, v => `${v} en propia`);
   return out;
 }
 
@@ -211,16 +214,16 @@ function logros(k) {
   const por = {}; matches.forEach(m => (por[monthKey(m.date)] = por[monthKey(m.date)] || []).push(m));
   const s = ALL[k], hoy = monthKey(new Date());
   Object.keys(por).filter(mk => mk < hoy).sort().forEach(mk => {
-    premiosMes(por[mk]).forEach(p => { if (p.keys.includes(k)) add(p.n, p.n, p.e, `${mname(mk)}: ${p.u(p.M[k])}`); });
+    premiosMes(por[mk]).forEach(p => { if (p.keys.includes(k)) add(p.n, p.n, p.e, `${mshort(mk)} · ${p.u(p.M[k])}`); });
     const jug = s.list.filter(x => monthKey(x.date) === mk).length;
-    if (por[mk].length >= 3 && jug === por[mk].length) add('Fiel', 'Fiel', '🤝', `${mname(mk)}: jugó los ${jug} partidos`);
+    if (por[mk].length >= 3 && jug === por[mk].length) add('Fiel', 'Fiel', '🤝', `${mshort(mk)} · ${jug} de ${jug} partidos`);
   });
-  const ht = s.list.filter(m => m.g >= 3).length; if (ht) add('Hat-trick', 'Hat-trick', '⚡', `${ht} partido(s) con 3 goles o más`);
+  s.list.filter(m => m.g >= 3).forEach(m => add('Hat-trick', 'Hat-trick', '⚡', `${fmt(m.date)} · ${m.g} goles`));
   let best = 0, cur = 0;
   s.list.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(m => { cur = m.res === 'v' ? cur + 1 : 0; best = Math.max(best, cur); });
-  if (best >= 3) add('Racha', 'Racha ganadora', '🔥', `${best} victorias seguidas`);
+  if (best >= 3) add('Racha', 'Racha ganadora', '🔥', `${best} seguidas`);
   const pr = Object.keys(s.partner).sort((a, b) => s.partner[b] - s.partner[a])[0];
-  if (pr && s.partner[pr] >= 3) add('Duo', 'Dúo dinámico', '🎯', `${s.partner[pr]} goles asistidos por ${dn(pr)}`);
+  if (pr && s.partner[pr] >= 3) add('Duo', 'Dúo dinámico', '🎯', `${s.partner[pr]} goles con ${dn(pr)}`);
   return Object.values(o);
 }
 
@@ -266,18 +269,19 @@ function partidos() {
 function ranking() {
   const P = PER, f = MET[rk][1];
   const desc = Object.keys(P).filter(k => f(P[k]) !== null).sort((a, b) => (f(P[b]) - f(P[a])) || P[b].goals - P[a].goals);
-  const arr = dir > 0 ? desc : desc.slice().reverse();
+  const arr = ord > 0 ? desc : desc.slice().reverse();
   const cats = [['Goles', '⚽', p => p.goals], ['Asistencias', '🎩', p => p.ast], ['Recuperaciones', '🛡️', p => p.def], ['MVPs', '🥇', p => p.mvp], ['Más faltoso', '😈', p => p.fl]];
   const honor = cats.map(([n, e, g]) => {
     const ks = Object.keys(P).sort((a, b) => g(P[b]) - g(P[a])), a = ks[0], b = ks[1];
     if (!a || !g(P[a])) return '';
-    const sec = b && g(P[b]) > 0 ? `2º ${esc(P[b].name)} · ${g(P[a]) === g(P[b]) ? 'empatado' : 'a ' + (g(P[a]) - g(P[b]))}` : '';
+    const sec = b && g(P[b]) > 0 ? `2º ${esc(P[b].name)} · ${g(P[b])}` : '';
     return `<div class="hn"><small>${e} ${n}</small><b>${esc(P[a].name)}</b> <b style="color:#1f9d4d">${g(P[a])}</b><div class="s">${sec}</div></div>`;
   }).join('');
   const pos = sel ? desc.indexOf(sel) + 1 : 0;
+  const opt = k => `<option value="${k}" ${k === rk ? 'selected' : ''}>${MET[k][0]}</option>`;
   const rows = arr.map((k, i) => `<div class="li${k === sel ? ' me' : ''}" onclick="pick('${k}')"><div class="pos">${desc.indexOf(k) + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${P[k].pj} partidos</small></div><div class="val">${f(P[k])}${PCT.includes(rk) ? '%' : ''}</div></div>`).join('');
   return `<div class="card"><h2>🏅 Cuadro de honor${mes === 'todo' ? '' : ' del periodo'}</h2><div class="honor">${honor || 'Aún no hay datos en este periodo.'}</div></div>
-    <div class="chips">${Object.keys(MET).map(k => `<button class="${k === rk ? 'on' : ''}" onclick="rk='${k}';render()">${MET[k][0]}</button>`).join('')}<button onclick="dir=-dir;render()">${dir > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
+    <div class="top" style="margin-bottom:8px"><select aria-label="Ordenar por" onchange="rk=this.value;render()"><optgroup label="Estadísticas">${['goles', 'asist', 'rec', 'mvp', 'vic', 'pct', 'pj', 'falt'].map(opt).join('')}</optgroup><optgroup label="Perfil de juego">${['ofe', 'vis', 'def', 'pun', 'con'].map(opt).join('')}</optgroup></select><button class="ordb" onclick="ord=-ord;render()">${ord > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
     ${pos ? `<div class="note">Tu puesto en ${MET[rk][0]}: ${pos}º de ${arr.length}</div>` : ''}
     <div class="card">${rows || 'Sin partidos en este periodo.'}</div>
     <div class="card"><h2>📅 Partidos${mes === 'todo' ? '' : ' del periodo'}</h2>${galeria()}</div>`;
@@ -327,6 +331,7 @@ function galeria() {
   const por = {}; sorted.forEach(m => (por[monthKey(m.date)] = por[monthKey(m.date)] || []).push(m));
   return Object.keys(por).sort().reverse().map(mk => `<div class="gm">${mname(mk)}</div><div class="pg">${por[mk].map(card).join('')}</div>`).join('');
 }
+function inicio() { sel = ''; $('q').value = ''; $('sug').style.display = 'none'; tab = 'ranking'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function pick(k) { sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function sugerir() {
   const v = norm($('q').value);
