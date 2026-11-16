@@ -25,7 +25,7 @@
         return { de: r, name: p.name, g: gg, a, sh, q, w, og: p.og || 0, prec: sh ? Math.round((gg + q) / sh * 100) : 0, efe: sh ? Math.round(gg / sh * 100) : 0, pts: gg * 3 + a * 2 + q * .5 + r * .5 - x };
       });
       const sh = g + pt + fu;
-      T[t] = { rows, z, g, pt, sh, de, fl, band: (z.b_tl || 0) + (z.b_tr || 0) + (z.b_bl || 0) + (z.b_br || 0), corn: (z.c_tl || 0) + (z.c_tr || 0) + (z.c_bl || 0) + (z.c_br || 0), prec: sh ? Math.round((g + pt) / sh * 100) : 0, conv: sh ? Math.round(g / sh * 100) : 0 };
+      T[t] = { rows, z, g, pt, sh, de, fl, band: (z.b_tl || 0) + (z.b_tr || 0) + (z.b_bl || 0) + (z.b_br || 0) || ((m.extra && m.extra[t] && m.extra[t].banda) || 0), corn: (z.c_tl || 0) + (z.c_tr || 0) + (z.c_bl || 0) + (z.c_br || 0) || ((m.extra && m.extra[t] && m.extra[t].corner) || 0), prec: sh ? Math.round((g + pt) / sh * 100) : 0, conv: sh ? Math.round(g / sh * 100) : 0 };
     });
     const all = [...T.white.rows, ...T.black.rows].sort((a, b) => b.pts - a.pts);
     return { T, mvp: all[0] && all[0].pts > 0 ? all[0].name : null };
@@ -62,7 +62,7 @@
     };
     const mx = Math.max(1, ...Object.values(W.z), ...Object.values(B.z)), hasHeat = [...Object.values(W.z), ...Object.values(B.z)].some(x => x > 0);
     const allr = [...W.rows, ...B.rows], mxr = Math.max(0, ...allr.map(r => r.de)), mur = mxr > 0 ? allr.find(r => r.de === mxr).name : null;
-    return `<div class="inf"><div class="inf-h"><h1>INFORME GRÁFICO Y ESTADÍSTICO · PARTIDO</h1><small>Fecha: ${f} · Duración: ${mn(m.duration || 0)}</small></div>
+    return `<div class="inf"><div class="inf-h"><h1>INFORME GRÁFICO Y ESTADÍSTICO · PARTIDO</h1><small>Fecha: ${f} · Duración: ${m.duration ? mn(m.duration) : 'sin datos'}</small></div>
 <div class="inf-w">${win} · ${sc.white} - ${sc.black}</div>
 ${t3('Métricas colectivas', r3('Saques de banda', W.band, B.band) + r3('Saques de córner', W.corn, B.corn) + r3('Total balón parado', W.band + W.corn + ' interrup.', B.band + B.corn + ' interrup.') + r3('Resultado final', `<b>${sc.white} goles</b>`, `<b>${sc.black} goles</b>`))}${vn('METRICAS')}
 ${t3('Acciones de estrategia y dinámica', (pt ? r3('Posesión de balón', pct(pw), pct(pb)) + r3('Tiempo efectivo de balón', mn(pw), mn(pb)) : '') + r3('Tiros totales', W.sh, B.sh) + r3('Tiros a puerta (efectivos)', W.g + W.pt, B.g + B.pt) + r3('Precisión de tiro', W.prec + '%', B.prec + '%') + r3('Conversión goleadora', W.conv + '%', B.conv + '%') + r3('Acciones defensivas (REC)', W.de, B.de) + r3('Faltas cometidas', W.fl, B.fl))}${vn('ESTRATEGIA')}
