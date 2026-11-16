@@ -149,7 +149,7 @@ function build(list) {
     const mvpKey = top && top.pts > 0 ? top.k : null, seen = {};
     const lu = { white: rows.filter(r => r.t === 'white').map(r => ({ k: r.k, name: r.name })), black: rows.filter(r => r.t === 'black').map(r => ({ k: r.k, name: r.name })) };
     rows.forEach(r => {
-      if (seen[r.k]) return; seen[r.k] = 1;
+      if (seen[r.k]) { const s0 = P[r.k]; s0.goals += r.g; s0.ast += r.a; s0.def += r.d; s0.pta += r.pt; s0.fue += r.f; s0.fl += r.fl; return; } seen[r.k] = 1;
       const s = P[r.k] = P[r.k] || { name: r.name, mote: (NM[r.k] && NM[r.k].mote) || '', pj: 0, v: 0, e: 0, d: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, mvp: 0, fair: 0, partner: {}, list: [] };
       const mine = sc[r.t], opp = sc[r.t === 'white' ? 'black' : 'white'];
       const res = mine > opp ? 'v' : mine < opp ? 'd' : 'e', isMvp = r.k === mvpKey;
