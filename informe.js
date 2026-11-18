@@ -27,8 +27,8 @@
       const sh = g + pt + fu;
       T[t] = { rows, z, g, pt, sh, de, fl, band: (z.b_tl || 0) + (z.b_tr || 0) + (z.b_bl || 0) + (z.b_br || 0) || ((m.extra && m.extra[t] && m.extra[t].banda) || 0), corn: (z.c_tl || 0) + (z.c_tr || 0) + (z.c_bl || 0) + (z.c_br || 0) || ((m.extra && m.extra[t] && m.extra[t].corner) || 0), prec: sh ? Math.round((g + pt) / sh * 100) : 0, conv: sh ? Math.round(g / sh * 100) : 0 };
     });
-    const all = [...T.white.rows, ...T.black.rows].sort((a, b) => b.pts - a.pts);
-    return { T, mvp: all[0] && all[0].pts > 0 ? all[0].name : null };
+    const all = [...T.white.rows, ...T.black.rows].sort((a, b) => b.pts - a.pts || b.g - a.g), top = all[0];
+    return { T, mvp: top && top.pts > 0 ? all.filter(r => r.pts === top.pts && r.g === top.g).map(r => r.name) : [] };
   }
 
   function heat(z, mx, id) {
@@ -58,10 +58,10 @@
     const ind = (t, lab) => {
       const rs = T[t].rows.slice().sort((a, b) => a.name.localeCompare(b.name, 'es')), mx = k => Math.max(0, ...rs.map(r => r[k]));
       const hi = (k, c, r) => r[k] > 0 && r[k] === mx(k) ? ` class="${c}"` : '';
-      return `<div class="inf-s">Rendimiento individual (${lab})</div><table><tr><th>Jugador</th><th>Goles</th><th>Asist.</th><th>Tiros</th><th>Puerta</th><th>Palos</th><th>PP</th><th>REC</th><th>Prec.</th><th>Efect.</th></tr>${rs.map(r => `<tr><td><b>${esc(r.name)}</b>${r.name === mvp ? '<span class="inf-mvp">⭐ MVP</span>' : ''}${r.name === mur ? '<span class="inf-mvp inf-mur">🛡️ MURALLA</span>' : ''}</td><td${hi('g', 'ih1', r)}>${r.g}</td><td${hi('a', 'ih2', r)}>${r.a}</td><td>${r.sh}</td><td>${r.q}</td><td>${r.w}</td><td style="color:${r.og ? '#c0392b' : 'inherit'};font-weight:${r.og ? 800 : 400}">${r.og}</td><td>${r.de}</td><td${hi('prec', 'ih3', r)}>${r.prec}%</td><td${hi('efe', 'ih4', r)}>${r.efe}%</td></tr>`).join('')}</table>`;
+      return `<div class="inf-s">Rendimiento individual (${lab})</div><table><tr><th>Jugador</th><th>Goles</th><th>Asist.</th><th>Tiros</th><th>Puerta</th><th>Palos</th><th>PP</th><th>REC</th><th>Prec.</th><th>Efect.</th></tr>${rs.map(r => `<tr><td><b>${esc(r.name)}</b>${mvp.includes(r.name) ? '<span class="inf-mvp">⭐ MVP</span>' : ''}${mur.includes(r.name) ? '<span class="inf-mvp inf-mur">🛡️ MURALLA</span>' : ''}</td><td${hi('g', 'ih1', r)}>${r.g}</td><td${hi('a', 'ih2', r)}>${r.a}</td><td>${r.sh}</td><td>${r.q}</td><td>${r.w}</td><td style="color:${r.og ? '#c0392b' : 'inherit'};font-weight:${r.og ? 800 : 400}">${r.og}</td><td>${r.de}</td><td${hi('prec', 'ih3', r)}>${r.prec}%</td><td${hi('efe', 'ih4', r)}>${r.efe}%</td></tr>`).join('')}</table>`;
     };
     const mx = Math.max(1, ...Object.values(W.z), ...Object.values(B.z)), hasHeat = [...Object.values(W.z), ...Object.values(B.z)].some(x => x > 0);
-    const allr = [...W.rows, ...B.rows], mxr = Math.max(0, ...allr.map(r => r.de)), mur = mxr > 0 ? allr.find(r => r.de === mxr).name : null;
+    const allr = [...W.rows, ...B.rows], mxr = Math.max(0, ...allr.map(r => r.de)), mur = mxr > 0 ? allr.filter(r => r.de === mxr).map(r => r.name) : [];
     return `<div class="inf"><div class="inf-h"><h1>INFORME GRÁFICO Y ESTADÍSTICO · PARTIDO</h1><small>Fecha: ${f} · Duración: ${m.duration ? mn(m.duration) : 'sin datos'}</small></div>
 <div class="inf-w">${win} · ${sc.white} - ${sc.black}</div>
 ${t3('Métricas colectivas', r3('Saques de banda', W.band, B.band) + r3('Saques de córner', W.corn, B.corn) + r3('Total balón parado', W.band + W.corn + ' interrup.', B.band + B.corn + ' interrup.') + r3('Resultado final', `<b>${sc.white} goles</b>`, `<b>${sc.black} goles</b>`))}${vn('METRICAS')}
@@ -69,7 +69,7 @@ ${t3('Acciones de estrategia y dinámica', (pt ? r3('Posesión de balón', pct(p
 ${hasHeat ? `<div class="inf-s">Mapa de calor: interrupciones por zona</div><div class="inf-hm"><div><b>Equipo Blanco</b>${heat(W.z, mx, 'w')}</div><div><b>Equipo Negro</b>${heat(B.z, mx, 'n')}</div></div><div style="background:#fff;border:1px solid #e3e9ee;border-top:0;padding:4px 10px 8px;font-size:.7rem;color:#6b7a86">Menos<div style="height:7px;border-radius:4px;background:linear-gradient(90deg,#e2ecf4,#2f5473)"></div><div style="text-align:right">Más interrupciones</div></div>${vn('CALOR')}` : ''}
 ${goals.length ? `<div class="inf-s">Línea temporal de goles (minuto a minuto)</div>${track('white', 'Equipo Blanco')}${track('black', 'Equipo Negro')}${vn('GOLES')}` : ''}
 ${ind('white', 'Equipo Blanco')}${vn('BLANCO')}${ind('black', 'Equipo Negro')}${vn('NEGRO')}
-<div class="inf-g"><b>GLOSARIO DEL ANALISTA</b><p><b>Tiros / Puerta:</b> tiros totales y los que van a puerta sin ser gol. <b>Precisión:</b> (goles + puerta) entre tiros. <b>Efectividad:</b> goles entre tiros.</p><p><b>Palos:</b> balones al poste o larguero. <b>PP:</b> goles en propia puerta. <b>Saques de banda y córner:</b> interrupciones por zona del campo.</p></div></div>`;
+<div class="inf-g"><b>GLOSARIO DEL ANALISTA</b><p><b>Tiros / Puerta:</b> tiros totales y los que van a puerta sin ser gol. <b>Precisión:</b> (goles + puerta) entre tiros. <b>Efectividad:</b> goles entre tiros.</p><p><b>Palos:</b> balones al poste o larguero. <b>PP:</b> goles en propia puerta. <b>Saques de banda y córner:</b> interrupciones por zona del campo.</p><p><b>MVP:</b> gana quien más puntos suma (gol 3, asistencia 2, tiro a puerta 0,5, recuperación 0,5 y falta −1); con empate, quien más goles tenga, y si sigue el empate lo comparten. <b>Muralla:</b> quien más recuperaciones suma; si hay empate, la comparten.</p></div></div>`;
   }
 
   const TAGS = ['METRICAS', 'ESTRATEGIA', 'CALOR', 'GOLES', 'BLANCO', 'NEGRO'];
@@ -91,7 +91,7 @@ ${ind('white', 'Equipo Blanco')}${vn('BLANCO')}${ind('black', 'Equipo Negro')}${
 [BLANCO] ...
 [NEGRO] ...
 
-DATOS DEL PARTIDO (${new Date(m.date).toLocaleDateString('es-ES')}): Blanco ${sc.white} - ${sc.black} Negro. Duración ${Math.round((m.duration || 0) / 60)} min. MVP: ${mvp || 'sin MVP'}.
+DATOS DEL PARTIDO (${new Date(m.date).toLocaleDateString('es-ES')}): Blanco ${sc.white} - ${sc.black} Negro. Duración ${Math.round((m.duration || 0) / 60)} min. MVP: ${mvp.join(' y ') || 'sin MVP'}.
 ${E('Blanco', 'white')}.
 ${E('Negro', 'black')}.
 Jugadores blanco: ${L('white')}.
