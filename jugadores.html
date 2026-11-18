@@ -79,6 +79,10 @@ button.foto{border:0;font-family:inherit}
 .t{overflow:hidden}.t span{overflow-wrap:anywhere}
 @media(max-width:430px){.t b{font-size:1.05rem}.t span{font-size:.55rem}.head h3{font-size:1.15rem}.luck b{font-size:.85rem}.luck span{font-size:.6rem}}
 @media print{.top,.tabs,#msg,.srch,button.foto,label.foto,.ordb,.rep-x,h1,.sub{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}}
+.more{display:block;width:100%;margin-top:8px;padding:9px;border:1px solid #cfdcd4;border-radius:10px;background:#fff;font:inherit;font-weight:700;color:#2c3a33;cursor:pointer}
+.ult{cursor:pointer;margin-bottom:9px}.ult .ph{margin-bottom:6px}
+@media(max-width:719px){.ult-p{display:none}}
+@media(min-width:1400px){#ultimo{position:fixed;right:16px;top:90px;width:230px;z-index:4}}
 </style>
 </head>
 <body>
@@ -89,6 +93,7 @@ button.foto{border:0;font-family:inherit}
     <button data-t="ficha">Ficha</button><button data-t="partidos">Partidos</button><button data-t="ranking">Ránking</button>
   </div>
   <div id="msg"></div>
+  <div id="ultimo"></div>
   <div id="view"></div>
   <div class="card"><h2>📮 Buzón de sugerencias</h2><div class="bz"><input id="bz-n" maxlength="60" placeholder="Tu nombre" aria-label="Tu nombre"><button id="bz-b">Enviar</button></div><textarea id="bz-t" rows="3" maxlength="500" placeholder="Sugerencia, mejora o cambio que te gustaría" aria-label="Sugerencia"></textarea></div>
   <div class="card gl"><h2>Mini guía</h2>
@@ -118,6 +123,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+const moreBtn = (key, n) => n > 10 ? `<button class="more" onclick="more['${key}'] = !more['${key}']; render()">${more[key] ? 'Ver menos' : 'Ver más (' + (n - 10) + ' más)'}</button>` : '';
 const norm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const docId = k => k.replace(/[^a-z0-9]+/g, '_');
@@ -133,7 +139,7 @@ const MET = { liga: ['🏆 Liga (puntos)', p => p.v * 3 + p.e], goles: ['Goles',
   ofe: ['⚔️ Ofensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.goals / p.pj / 2.5 * 100)) : null], vis: ['🧠 Visión', p => p.pj >= 3 ? Math.round(Math.min(100, p.ast / p.pj / 2 * 100)) : null],
   def: ['🛡️ Defensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.def / p.pj / 4 * 100)) : null], pun: ['🎯 Puntería', p => p.pj >= 3 && sh(p) ? Math.round((p.goals + p.pta) / sh(p) * 100) : null], con: ['📅 Constancia', p => Math.round(p.pj / Math.max(1, NP) * 100)] };
 
-let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', rk = 'liga', mes = 'todo', ord = 1, PER = {}, NP = 0;
+let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', more = {}, rk = 'liga', mes = 'todo', ord = 1, PER = {}, NP = 0;
 
 // Agrega estadísticas de una lista de partidos
 function build(list) {
@@ -268,9 +274,10 @@ function pitch(m) {
 
 function partidos() {
   const s = PER[sel]; if (!s) return `<div class="card">Este jugador no tiene partidos en el periodo elegido.</div>`;
-  const cards = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(m => `
+  const allP = s.list.slice().sort((a, b) => new Date(b.date) - new Date(a.date)), nP = more.pp ? allP.length : 10;
+  const cards = allP.slice(0, nP).map(m => `
     <div class="pc g ${m.res}" onclick="abrirInforme('${m.id}')"><div class="ph"><span>${fmt(m.date)}${m.mvp ? ' ⭐' : ''}</span><span class="sc"><b class="${m.sw ? 'sb' : 'sw'}">${m.sw ? m.sc.black : m.sc.white}</b><b class="${m.sw ? 'sw' : 'sb'}">${m.sw ? m.sc.white : m.sc.black}</b></span></div>${pitch(m)}<small>${m.g} G · ${m.a} A · ${m.d} REC · ${m.fl} F</small></div>`).join('');
-  return `<div class="card"><h2>Mis partidos</h2><div class="pg">${cards}</div><small style="color:var(--mut);font-size:.68rem;display:block;margin-top:6px">Cada mini campo respeta el lado en que jugó cada equipo. Borde dorado: tú. Borde de la tarjeta: verde victoria, gris empate, rojo derrota.</small></div>`;
+  return `<div class="card"><h2>Mis partidos</h2><div class="pg">${cards}</div>${moreBtn('pp', allP.length)}<small style="color:var(--mut);font-size:.68rem;display:block;margin-top:6px">Cada mini campo respeta el lado en que jugó cada equipo. Borde dorado: tú. Borde de la tarjeta: verde victoria, gris empate, rojo derrota.</small></div>`;
 }
 
 function ranking() {
@@ -286,14 +293,23 @@ function ranking() {
   }).join('');
   const pos = sel ? desc.indexOf(sel) + 1 : 0;
   const opt = k => `<option value="${k}" ${k === rk ? 'selected' : ''}>${MET[k][0]}</option>`;
-  const rows = arr.map((k, i) => `<div class="li${k === sel ? ' me' : ''}" onclick="pick('${k}')"><div class="pos">${desc.indexOf(k) + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${rk === 'liga' ? `${P[k].v}V · ${P[k].e}E · ${P[k].d}D` : P[k].pj + ' partidos'}</small></div><div class="val">${f(P[k])}${PCT.includes(rk) ? '%' : ''}</div></div>`).join('');
+  const rkKey = 'r' + rk + mes + ord, nR = more[rkKey] ? arr.length : 10;
+  const rows = arr.slice(0, nR).map((k, i) => `<div class="li${k === sel ? ' me' : ''}" onclick="pick('${k}')"><div class="pos">${desc.indexOf(k) + 1}</div>${avatar(k, P[k].name, 1)}<div class="n">${esc(P[k].name)}<small>${rk === 'liga' ? `${P[k].v}V · ${P[k].e}E · ${P[k].d}D` : P[k].pj + ' partidos'}</small></div><div class="val">${f(P[k])}${PCT.includes(rk) ? '%' : ''}</div></div>`).join('');
   return `<div class="card"><h2>🏅 Cuadro de honor${mes === 'todo' ? '' : ' del periodo'}</h2><div class="honor">${honor || 'Aún no hay datos en este periodo.'}</div></div>
     <div class="top" style="margin-bottom:8px"><select aria-label="Ordenar por" onchange="rk=this.value;render()"><optgroup label="Estadísticas">${['liga', 'goles', 'asist', 'rec', 'mvp', 'vic', 'pct', 'pj', 'falt'].map(opt).join('')}</optgroup><optgroup label="Perfil de juego">${['ofe', 'vis', 'def', 'pun', 'con'].map(opt).join('')}</optgroup></select><button class="ordb" onclick="ord=-ord;render()">${ord > 0 ? '▼ Mayor a menor' : '▲ Menor a mayor'}</button></div>
     ${pos ? `<div class="note">Tu puesto en ${MET[rk][0]}: ${pos}º de ${arr.length}</div>` : ''}
-    <div class="card">${rows || 'Sin partidos en este periodo.'}</div>
+    <div class="card">${rows || 'Sin partidos en este periodo.'}${moreBtn(rkKey, arr.length)}</div>
     <div class="card"><h2>📅 Partidos${mes === 'todo' ? '' : ' del periodo'}</h2>${galeria()}</div>`;
 }
 
+function renderUltimo() {
+  const el = $('ultimo'), m = matches.slice().sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+  if (!el || !m) return;
+  const lu = { white: [], black: [] };
+  ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => lu[t].push({ k: kk(p.name), name: dn(p.name) })));
+  const a = `<b class="sw">${m.score.white}</b>`, b = `<b class="sb">${m.score.black}</b>`;
+  el.innerHTML = `<div class="card ult" onclick="abrirInforme('${m.id}')"><h2>🆕 Último partido</h2><div class="ph"><span>${fmt(m.date)}</span><span class="sc">${m.swapped ? b + a : a + b}</span></div><div class="ult-p">${pitch({ lu, sw: !!m.swapped })}</div><button class="more" style="margin-top:6px">📄 Ver informe</button></div>`;
+}
 function render() {
   if (!sel) tab = 'ranking';
   $('tabs').style.display = sel ? 'flex' : 'none';
@@ -301,6 +317,7 @@ function render() {
   const L = mes === 'todo' ? matches : matches.filter(m => monthKey(m.date) === mes);
   PER = build(L); NP = L.length; LIST = L;
   $('view').innerHTML = tab === 'ficha' ? ficha() : tab === 'partidos' ? partidos() : ranking();
+  renderUltimo();
 }
 async function enviar(o) {
   try { await db.collection('solicitudes').add({ ...o, fecha: new Date().toISOString(), estado: 'pendiente' }); $('msg').textContent = '¡Enviado! El administrador lo revisará.'; return true; }
@@ -333,12 +350,12 @@ function galeria() {
     const a = `<b class="sw">${m.score.white}</b>`, b = `<b class="sb">${m.score.black}</b>`;
     return `<div class="pc g${m === best ? ' best' : ''}" onclick="abrirInforme('${m.id}')"><div class="ph"><span>${fmt(m.date)}${m === best ? ' 🔥' : ''}</span><span class="sc">${sw ? b + a : a + b}</span></div>${pitch({ lu, sw })}<small>${tot(m)} goles${m === best ? ' · Partidazo' : ''}</small></div>`;
   };
-  const sorted = LIST.slice().sort((x, y) => new Date(y.date) - new Date(x.date));
-  if (mes !== 'todo') return `<div class="pg">${sorted.map(card).join('')}</div>`;
+  const sortedAll = LIST.slice().sort((x, y) => new Date(y.date) - new Date(x.date)), sorted = sortedAll.slice(0, more.gal ? sortedAll.length : 10);
+  if (mes !== 'todo') return `<div class="pg">${sorted.map(card).join('')}</div>${moreBtn('gal', sortedAll.length)}`;
   const por = {}; sorted.forEach(m => (por[monthKey(m.date)] = por[monthKey(m.date)] || []).push(m));
-  return Object.keys(por).sort().reverse().map(mk => `<div class="gm">${mname(mk)}</div><div class="pg">${por[mk].map(card).join('')}</div>`).join('');
+  return Object.keys(por).sort().reverse().map(mk => `<div class="gm">${mname(mk)}</div><div class="pg">${por[mk].map(card).join('')}</div>`).join('') + moreBtn('gal', sortedAll.length);
 }
-function inicio() { sel = ''; $('q').value = ''; $('sug').style.display = 'none'; tab = 'ranking'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function inicio() { more = {}; sel = ''; $('q').value = ''; $('sug').style.display = 'none'; tab = 'ranking'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function verDuelo(b) {
   const el = $('duelo-res'); if (!b) { el.innerHTML = ''; return; }
   const a = sel, r = { j: 0, vj: 0, c: 0, vA: 0, vB: 0, e: 0, gA: 0, gB: 0, aAB: 0, aBA: 0 };
@@ -352,7 +369,7 @@ function verDuelo(b) {
   const A = ALL[a].name, B = ALL[b].name, t = (n, l) => `<div class="t"><b>${n}</b><span>${l}</span></div>`;
   el.innerHTML = `<div class="r2" style="margin-top:8px">${t(r.j ? `${r.vj} de ${r.j}` : '-', 'Victorias jugando juntos')}${t(r.c ? `${r.vA}-${r.e}-${r.vB}` : '-', `${esc(A)} · empates · ${esc(B)}`)}${t(r.c ? `${r.gA}-${r.gB}` : '-', 'Goles frente a frente')}${t(`${r.aAB}-${r.aBA}`, 'Asistencias entre vosotros')}</div><small style="color:var(--mut)">${r.j} partidos juntos y ${r.c} en contra, en todo el historial.</small>`;
 }
-function pick(k) { sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function pick(k) { more = {}; sel = k; $('q').value = ALL[k].name; $('sug').style.display = 'none'; tab = 'ficha'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function sugerir() {
   const v = norm($('q').value);
   const ks = Object.keys(ALL).filter(k => !v || norm(ALL[k].name).includes(v) || norm(ALL[k].mote || '').includes(v)).sort((a, b) => ALL[a].name.localeCompare(ALL[b].name, 'es')).slice(0, 12);
