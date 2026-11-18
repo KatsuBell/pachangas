@@ -98,14 +98,16 @@ button.foto{border:0;font-family:inherit}
   <div class="card"><h2>📮 Buzón de sugerencias</h2><div class="bz"><input id="bz-n" maxlength="60" placeholder="Tu nombre" aria-label="Tu nombre"><button id="bz-b">Enviar</button></div><textarea id="bz-t" rows="3" maxlength="500" placeholder="Sugerencia, mejora o cambio que te gustaría" aria-label="Sugerencia"></textarea></div>
   <div class="card gl"><h2>Mini guía</h2>
     <p><b>📊 Datos básicos</b> · PJ: partidos jugados · REC: recuperaciones (balones robados)</p>
-    <p><b>⚡ Rendimiento</b> · Precisión: tiros que son gol o van a puerta, entre todos tus tiros · MVP: el mejor de cada partido (3 por gol, 2 por asistencia, 0,5 por tiro a puerta y por recuperación, y −1 por falta)</p>
+    <p><b>⚡ Rendimiento</b> · Precisión: tiros que son gol o van a puerta, entre todos tus tiros </p>
     <p><b>🕸️ Perfil de juego</b> · Ofensiva (goles por partido), Visión (asistencias), Defensa (REC), Puntería (precisión) y Constancia (partidos jugados del total). Cada eje va de 0 a 100</p>
     <p><b>🍀 Extras</b> · Mejor socio: quien más goles tuyos asiste · Color de la suerte: el equipo con el que más ganas</p>
     <p><b>📅 Partidos</b> · Toca uno para ver su informe · 🔥 Partidazo: el partido con más goles del periodo</p>
     <p><b>🏆 Liga</b> · 3 puntos por victoria y 1 por empate, según el periodo elegido</p>
     <p><b>⚔️ Duelo</b> · Elige a otro jugador en tu ficha para ver cuánto ganáis juntos, quién gana cuando os enfrentáis y vuestras asistencias</p>
     <p><b>🏅 Ránking</b> · Sigue el periodo elegido arriba · Los rankings de perfil y el % de victorias piden 3 partidos o más</p>
-    <p><b>🎖️ Medallas</b> · Cada una explica qué la da y cuándo la lograste · Las mensuales se dan al acabar el mes y los empates la comparten</p>
+    <p><b>⭐ MVP de cada partido</b> · Gana quien más puntos suma: gol 3, asistencia 2, tiro a puerta 0,5, recuperación 0,5 y falta −1. Por eso un jugador con 2 goles y 3 asistencias (12 puntos) supera a uno con 3 goles y ninguna asistencia (9). Con empate a puntos, gana quien más goles tenga; si aún siguen empatados, lo comparten</p>
+    <p><b>🎖️ Medallas</b> · Se dan al terminar cada mes. Gana quien más tenga en esa categoría (goles, MVPs, asistencias, recuperaciones…) y los empates la comparten. Cada medalla indica qué la da y cuándo la lograste</p>
+    <p><b>🛡️ Muralla de un partido</b> · Quien más recuperaciones suma en ese partido; con empate, la comparten</p>
     <p><b>📷 Foto, nombre y mote</b> · Puedes quitar tu foto cuando quieras · Nombre y mote los aprueba el administrador</p></div>
   <input type="file" id="file" accept="image/*" hidden>
   <div class="rep-ov" id="rep" onclick="if(event.target===this)cerrarInforme()"><div class="rep-box"><button class="rep-x" onclick="cerrarInforme()">✕ Cerrar</button><div id="rep-body"></div></div></div>
@@ -152,13 +154,13 @@ function build(list) {
       rows.push({ k, name: (NM[k] && NM[k].mostrar) || p.name.trim(), t, g, a, pt, f: p.f || 0, d, fl, pts: g * 3 + a * 2 + pt * .5 + d * .5 - fl });
     }));
     const top = rows.slice().sort((a, b) => b.pts - a.pts || b.g - a.g)[0];
-    const mvpKey = top && top.pts > 0 ? top.k : null, seen = {};
+    const mvpSet = top && top.pts > 0 ? rows.filter(r => r.pts === top.pts && r.g === top.g).map(r => r.k) : [], seen = {};
     const lu = { white: rows.filter(r => r.t === 'white').map(r => ({ k: r.k, name: r.name })), black: rows.filter(r => r.t === 'black').map(r => ({ k: r.k, name: r.name })) };
     rows.forEach(r => {
       if (seen[r.k]) { const s0 = P[r.k]; s0.goals += r.g; s0.ast += r.a; s0.def += r.d; s0.pta += r.pt; s0.fue += r.f; s0.fl += r.fl; return; } seen[r.k] = 1;
       const s = P[r.k] = P[r.k] || { name: r.name, mote: (NM[r.k] && NM[r.k].mote) || '', pj: 0, v: 0, e: 0, d: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, mvp: 0, fair: 0, partner: {}, list: [] };
       const mine = sc[r.t], opp = sc[r.t === 'white' ? 'black' : 'white'];
-      const res = mine > opp ? 'v' : mine < opp ? 'd' : 'e', isMvp = r.k === mvpKey;
+      const res = mine > opp ? 'v' : mine < opp ? 'd' : 'e', isMvp = mvpSet.includes(r.k);
       s.pj++; s[res]++; s.goals += r.g; s.ast += r.a; s.def += r.d; s.pta += r.pt; s.fue += r.f; s.fl += r.fl;
       s.fair += Math.max(0, 3 - r.fl); if (isMvp) s.mvp++;
       s.list.push({ date: m.date, sc, t: r.t, res, g: r.g, a: r.a, d: r.d, fl: r.fl, mvp: isMvp, lu, sw: !!m.swapped, id: m.id });
