@@ -136,10 +136,11 @@ const dn = n => (NM[kk(n)] && NM[kk(n)].mostrar) || n;
 const $ = id => document.getElementById(id);
 const fmt = d => { d = new Date(d); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
 const monthKey = d => { d = new Date(d); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
-const sh = p => p.goals + p.pta + p.fue, PCT = ['pct', 'pun', 'con'];
+const sdOf = m => m.sinDatos || (m.imported ? ['rec', 'faltas'] : []);
+const sh = p => p.gT + p.pta + p.fue, PCT = ['pct', 'pun', 'con'];
 const MET = { liga: ['🏆 Liga (puntos)', p => p.v * 3 + p.e], goles: ['Goles', p => p.goals], asist: ['Asist.', p => p.ast], rec: ['REC', p => p.def], mvp: ['MVPs', p => p.mvp], vic: ['Victorias', p => p.v], pct: ['% victorias', p => p.pj >= 3 ? Math.round(p.v / p.pj * 100) : null], pj: ['Partidos', p => p.pj], falt: ['Faltas 😈', p => p.fl],
-  ofe: ['⚔️ Ofensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.goals / p.pj / 2.5 * 100)) : null], vis: ['🧠 Visión', p => p.pj >= 3 ? Math.round(Math.min(100, p.ast / p.pj / 2 * 100)) : null],
-  def: ['🛡️ Defensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.def / p.pj / 4 * 100)) : null], pun: ['🎯 Puntería', p => p.pj >= 3 && sh(p) ? Math.round((p.goals + p.pta) / sh(p) * 100) : null], con: ['📅 Constancia', p => Math.round(p.pj / Math.max(1, NP) * 100)] };
+  ofe: ['⚔️ Ofensivo', p => p.pj >= 3 ? Math.round(Math.min(100, p.goals / p.pj / 2.5 * 100)) : null], vis: ['🧠 Visión', p => p.pjAst >= 3 ? Math.round(Math.min(100, p.ast / p.pjAst / 2 * 100)) : null],
+  def: ['🛡️ Defensivo', p => p.pjRec >= 3 ? Math.round(Math.min(100, p.def / p.pjRec / 4 * 100)) : null], pun: ['🎯 Puntería', p => p.pjT >= 3 && sh(p) ? Math.round((p.gT + p.pta) / sh(p) * 100) : null], con: ['📅 Constancia', p => Math.round(p.pj / Math.max(1, NP) * 100)] };
 
 let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', more = {}, rk = 'liga', mes = 'todo', ord = 1, PER = {}, NP = 0;
 
@@ -147,7 +148,7 @@ let matches = [], fotos = {}, ALL = {}, sel = '', tab = 'ficha', more = {}, rk =
 function build(list) {
   const P = {};
   list.forEach(m => {
-    const sc = m.score || { white: 0, black: 0 }, rows = [];
+    const sc = m.score || { white: 0, black: 0 }, rows = [], sd = sdOf(m);
     ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => {
       const k = kk(p.name); if (!k) return;
       const g = p.goalsList ? p.goalsList.length : 0, a = p.ast || 0, pt = p.p || 0, d = p.def || 0, fl = p.fl || 0;
@@ -157,11 +158,11 @@ function build(list) {
     const mvpSet = top && top.pts > 0 ? rows.filter(r => r.pts === top.pts && r.g === top.g).map(r => r.k) : [], seen = {};
     const lu = { white: rows.filter(r => r.t === 'white').map(r => ({ k: r.k, name: r.name })), black: rows.filter(r => r.t === 'black').map(r => ({ k: r.k, name: r.name })) };
     rows.forEach(r => {
-      if (seen[r.k]) { const s0 = P[r.k]; s0.goals += r.g; s0.ast += r.a; s0.def += r.d; s0.pta += r.pt; s0.fue += r.f; s0.fl += r.fl; return; } seen[r.k] = 1;
-      const s = P[r.k] = P[r.k] || { name: r.name, mote: (NM[r.k] && NM[r.k].mote) || '', pj: 0, v: 0, e: 0, d: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, mvp: 0, fair: 0, partner: {}, list: [] };
+      if (seen[r.k]) { const s0 = P[r.k]; s0.goals += r.g; if (!sd.includes('asist')) s0.ast += r.a; if (!sd.includes('rec')) s0.def += r.d; if (!sd.includes('tiros')) { s0.pta += r.pt; s0.fue += r.f; s0.gT += r.g; } if (!sd.includes('faltas')) s0.fl += r.fl; return; } seen[r.k] = 1;
+      const s = P[r.k] = P[r.k] || { pjAst: 0, pjRec: 0, pjT: 0, gT: 0, name: r.name, mote: (NM[r.k] && NM[r.k].mote) || '', pj: 0, v: 0, e: 0, d: 0, goals: 0, ast: 0, def: 0, pta: 0, fue: 0, fl: 0, mvp: 0, fair: 0, partner: {}, list: [] };
       const mine = sc[r.t], opp = sc[r.t === 'white' ? 'black' : 'white'];
       const res = mine > opp ? 'v' : mine < opp ? 'd' : 'e', isMvp = mvpSet.includes(r.k);
-      s.pj++; s[res]++; s.goals += r.g; s.ast += r.a; s.def += r.d; s.pta += r.pt; s.fue += r.f; s.fl += r.fl;
+      s.pj++; s[res]++; s.goals += r.g; if (!sd.includes('asist')) { s.ast += r.a; s.pjAst++; } if (!sd.includes('rec')) { s.def += r.d; s.pjRec++; } if (!sd.includes('tiros')) { s.pta += r.pt; s.fue += r.f; s.gT += r.g; s.pjT++; } if (!sd.includes('faltas')) s.fl += r.fl;
       s.fair += Math.max(0, 3 - r.fl); if (isMvp) s.mvp++;
       s.list.push({ date: m.date, sc, t: r.t, res, g: r.g, a: r.a, d: r.d, fl: r.fl, mvp: isMvp, lu, sw: !!m.swapped, id: m.id });
     });
@@ -218,7 +219,7 @@ function premiosMes(list) {
   top('El Mago', '🎩', of(p => p.ast), v => `${v} asist.`); top('La Muralla', '🛡️', of(p => p.def), v => `${v} REC`);
   top('Más faltoso', '😈', of(p => p.fl), v => `${v} faltas`);
   const E = {}, T = {}, O = {};
-  list.forEach(m => rowsOf(m).forEach(r => { const sh = r.g + r.pt + r.f; E[r.k] = Math.max(E[r.k] || 0, sh >= 5 ? r.g / sh : 0); T[r.k] = Math.max(T[r.k] || 0, sh); O[r.k] = (O[r.k] || 0) + r.og; }));
+  list.forEach(m => { if (sdOf(m).includes('tiros')) return; rowsOf(m).forEach(r => { const sh = r.g + r.pt + r.f; E[r.k] = Math.max(E[r.k] || 0, sh >= 5 ? r.g / sh : 0); T[r.k] = Math.max(T[r.k] || 0, sh); O[r.k] = (O[r.k] || 0) + r.og; }); });
   top('El Francotirador', '🎯', E, v => `${Math.round(v * 100)} %`); top('Gatillo Fácil', '🔫', T, v => `${v} tiros`); top('Fuego Amigo', '🤡', O, v => `${v} en propia`);
   return out;
 }
@@ -243,8 +244,8 @@ function logros(k) {
 
 function ficha() {
   const s = PER[sel]; if (!s) return `<div class="card">Este jugador no tiene partidos en el periodo elegido.</div>`;
-  const pm = s.pj || 1, shots = s.goals + s.pta + s.fue, prec = (s.goals + s.pta) / Math.max(1, shots) * 100;
-  const vals = [Math.min(100, s.goals / pm / 2.5 * 100), Math.min(100, s.ast / pm / 2 * 100), Math.min(100, s.def / pm / 4 * 100), prec, s.pj / Math.max(1, NP) * 100];
+  const pm = s.pj || 1, shots = s.gT + s.pta + s.fue, prec = (s.gT + s.pta) / Math.max(1, shots) * 100;
+  const vals = [Math.min(100, s.goals / pm / 2.5 * 100), Math.min(100, s.ast / Math.max(1, s.pjAst) / 2 * 100), Math.min(100, s.def / Math.max(1, s.pjRec) / 4 * 100), prec, s.pj / Math.max(1, NP) * 100];
   const partner = Object.keys(s.partner).sort((a, b) => s.partner[b] - s.partner[a])[0] || 'Sin datos';
   const c = { white: { n: 0, v: 0 }, black: { n: 0, v: 0 } };
   s.list.forEach(m => { c[m.t].n++; if (m.res === 'v') c[m.t].v++; });
