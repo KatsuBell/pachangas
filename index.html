@@ -1582,11 +1582,9 @@ body.gk-flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-ind
                             }
 
                             if (match && match.matchData) {
-                                const exists = history.some(m => String(m.id) === String(match.id));
-                                if (!exists) {
-                                    history.push(match);
-                                    importedMatchesCount++;
-                                }
+                                const hIdx = history.findIndex(m => String(m.id) === String(match.id));
+                                if (hIdx < 0) { history.push(match); importedMatchesCount++; }
+                                else if (match.reemplazar) { history[hIdx] = match; importedMatchesCount++; }
 
                                 ['white', 'black'].forEach(team => {
                                     if (match.matchData[team] && match.matchData[team].players) {
@@ -1835,7 +1833,8 @@ async function cloudPull(silent) {
     let added = 0;
     snap.forEach(d => {
       const m = d.data();
-      if (history.some(h => String(h.id) === String(m.id))) return;
+      const hi = history.findIndex(h => String(h.id) === String(m.id));
+      if (hi >= 0) { if ((m.rev || 0) > (history[hi].rev || 0)) { history[hi] = m; added++; } return; }
       history.push(m); added++;
       ['white', 'black'].forEach(t => ((m.matchData && m.matchData[t] && m.matchData[t].players) || []).forEach(p => {
         if (p.name && !saved.some(s => normalizeName(s) === normalizeName(p.name))) saved.push(p.name.trim());
