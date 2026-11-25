@@ -376,7 +376,7 @@ function pick(k) { more = {}; sel = k; $('q').value = ALL[k].name; $('sug').styl
 function sugerir() {
   const v = norm($('q').value);
   const ks = Object.keys(ALL).filter(k => !v || norm(ALL[k].name).includes(v) || norm(ALL[k].mote || '').includes(v)).sort((a, b) => ALL[a].name.localeCompare(ALL[b].name, 'es')).slice(0, 12);
-  $('sug').innerHTML = ks.map(k => `<div class="sg" data-k="${esc(k)}">${avatar(k, ALL[k].name, 1)}<span>${esc(ALL[k].name)}</span></div>`).join('');
+  $('sug').innerHTML = ks.map(k => `<div class="sg" data-k="${esc(k)}">${avatar(k, ALL[k].name, 1)}<span>${esc(ALL[k].name)}${ALL[k].mote ? ` <small style="opacity:.55;font-style:italic">“${esc(ALL[k].mote)}”</small>` : ''}</span></div>`).join('');
   $('sug').style.display = ks.length ? 'block' : 'none';
 }
 $('q').onfocus = sugerir; $('q').oninput = () => { if (!$('q').value.trim() && sel) { sel = ''; render(); } sugerir(); };
